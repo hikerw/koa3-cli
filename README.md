@@ -1,6 +1,9 @@
-# Koa2 CLI
+# Koa3 CLI
 
-基于 Koa2 的脚手架项目。
+基于 Koa3 的脚手架项目。
+
+- 📖 文档地址：https://atwzc.cn/
+- 🔗 Gitee 地址：https://gitee.com/wangziwl/koa3-cli
 
 ## 项目结构
 
