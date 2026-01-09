@@ -63,7 +63,7 @@ npm start
 
 - 首页: http://localhost:3000
 - API 示例: http://localhost:3000/api/user
-- 文档: http://localhost:3000/docs（需要先运行 `npm run docs:build`）
+- 文档: http://localhost:3000/index.html
 
 ### 文档开发
 
