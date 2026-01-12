@@ -1,8 +1,8 @@
 const Koa = require('koa');
-const Router = require('koa-router');
+const { Router } = require('@koa/router');
 const bodyParser = require('koa-bodyparser');
 const static = require('koa-static');
-const views = require('koa-views');
+const views = require('@ladjs/koa-views');
 const path = require('path');
 const fs = require('fs');
 

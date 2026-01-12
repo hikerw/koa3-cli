@@ -69,6 +69,10 @@
               <h3>✅ 错误处理</h3>
               <p>统一的错误处理机制</p>
             </div>
+            <div class="feature">
+              <h3>⚡ CLI 工具</h3>
+              <p>一键创建项目，快速上手</p>
+            </div>
           </div>
         </div>
       </div>
@@ -76,7 +80,19 @@
       <!-- 快速开始 -->
       <div id="getting-started" class="content-section">
         <h1>快速开始</h1>
-        <h2>安装依赖</h2>
+        <h2>使用 CLI 工具创建项目（推荐）</h2>
+        <h3>全局安装 CLI</h3>
+        <pre><code class="language-bash">npm install -g koa3-cli</code></pre>
+        <h3>创建新项目</h3>
+        <pre><code class="language-bash">koa3-cli create my-project
+cd my-project
+npm install
+npm run dev</code></pre>
+        <p>或者使用 npx（无需安装）：</p>
+        <pre><code class="language-bash">npx koa3-cli create my-project</code></pre>
+        <h2>手动安装项目</h2>
+        <p>如果你已经有一个项目，可以手动安装依赖：</p>
+        <h3>安装依赖</h3>
         <pre><code class="language-bash">npm install</code></pre>
         <h2>启动项目</h2>
         <h3>开发环境</h3>
@@ -90,6 +106,13 @@
           <li><strong>首页</strong>: http://localhost:3000</li>
           <li><strong>API 示例</strong>: http://localhost:3000/api/user</li>
           <li><strong>文档</strong>: http://localhost:3000/index.html</li>
+        </ul>
+        <h2>CLI 命令</h2>
+        <p>CLI 工具支持以下命令：</p>
+        <ul>
+          <li><code>koa3-cli create &lt;project-name&gt;</code> - 创建新项目</li>
+          <li><code>koa3-cli --help</code> - 查看帮助信息</li>
+          <li><code>koa3-cli --version</code> - 查看版本信息</li>
         </ul>
         <h2>环境配置</h2>
         <p>项目支持多环境配置，通过 <code>NODE_ENV</code> 环境变量控制：</p>
@@ -114,8 +137,7 @@
 ├── app/                    # 应用代码目录
 │   ├── controller/        # 控制器目录
 │   │   ├── home.js        # 首页控制器
-│   │   ├── user.js        # 用户控制器
-│   │   └── docs.js        # 文档控制器
+│   │   └── user.js        # 用户控制器
 │   ├── service/           # 服务层目录
 │   │   └── user.js        # 用户服务
 │   ├── model/             # 数据模型目录
@@ -126,14 +148,18 @@
 │   ├── router.js          # 路由配置
 │   └── view/              # 视图模板目录（可选）
 │       └── docs.ejs       # 页面模板
+├── bin/                   # CLI 工具目录（仅 CLI 包）
+│   └── cli.js             # CLI 入口文件
 ├── config/                # 配置文件目录
 │   ├── config.default.js  # 默认配置
 │   ├── config.local.js    # 本地开发配置
 │   └── config.prod.js     # 生产环境配置
 ├── public/                # 静态资源目录
-│   └── index.html         # 首页
+│   ├── docs/              # 文档资源
+│   └── index.html         # 文档首页
 ├── app.js                 # 应用入口文件
 ├── package.json           # 项目配置
+├── env.example            # 环境变量示例
 └── README.md             # 项目说明</code></pre>
         <h2>目录说明</h2>
         <h3>app/</h3>

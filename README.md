@@ -1,9 +1,39 @@
 # Koa3 CLI
 
-基于 Koa3 的脚手架项目。
+基于 Koa3 的脚手架项目，提供 CLI 工具快速创建项目。
 
 - 📖 文档地址：https://atwzc.cn/
 - 🔗 Gitee 地址：https://gitee.com/wangziwl/koa3-cli
+
+## 安装 CLI 工具
+
+### 全局安装（推荐）
+
+```bash
+npm install -g koa3-cli
+```
+
+### 使用 npx（无需安装）
+
+```bash
+npx koa3-cli create my-project
+```
+
+## 使用 CLI 创建项目
+
+```bash
+# 创建新项目
+koa3-cli create my-project
+
+# 进入项目目录
+cd my-project
+
+# 安装依赖
+npm install
+
+# 启动开发服务器
+npm run dev
+```
 
 ## 项目结构
 
@@ -34,7 +64,8 @@ koa2-cli/
 
 ## 特性
 
-- ✅ 基于 Koa2，轻量高效
+- ✅ 基于 Koa3，轻量高效
+- ✅ CLI 工具，一键创建项目
 - ✅ 项目结构，清晰规范
 - ✅ 支持多环境配置（development/production）
 - ✅ MVC 架构（Controller/Service/Model）
