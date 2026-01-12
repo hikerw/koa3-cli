@@ -1,6 +1,6 @@
 {
   "name": "koa3-cli",
-  "version": "1.0.0",
+  "version": "1.0.2",
   "description": "Koa3脚手架",
   "main": "app.js",
   "bin": {
@@ -25,8 +25,8 @@
   "homepage": "https://atwzc.cn/",
   "license": "MIT",
   "dependencies": {
-    "@koa/router": "^15.0.0",
-    "@ladjs/koa-views": "^8.1.0",
+    "@koa/router": "^15.2.0",
+    "@ladjs/koa-views": "^9.0.0",
     "dotenv": "^17.2.3",
     "ejs": "^3.1.10",
     "koa": "^3.1.1",
