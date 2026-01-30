@@ -18,5 +18,18 @@ module.exports = {
       gzip: true,
       brotli: true
     }
+  },
+
+  // 生产环境 Mongo 配置
+  mongo: {
+    uri: process.env.MONGO_URI || 'mongodb://localhost:27017/koa3-prod'
+  },
+
+  // JWT 配置覆盖（可选）
+  jwt: {
+    secret: process.env.JWT_SECRET || 'koa3-admin-secret-prod',
+    expiresIn: '7d'
   }
 };
+
+

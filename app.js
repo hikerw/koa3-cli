@@ -5,6 +5,7 @@ const static = require('koa-static');
 const views = require('@ladjs/koa-views');
 const path = require('path');
 const fs = require('fs');
+const { connectMongo } = require('./app/model/db');
 
 // 加载环境变量
 require('dotenv').config();
@@ -13,6 +14,7 @@ require('dotenv').config();
 const env = process.env.NODE_ENV || 'development';
 const defaultConfig = require('./config/config.default');
 let envConfig = {};
+
 try {
   if (env === 'production') {
     envConfig = require('./config/config.prod');
@@ -24,13 +26,21 @@ try {
 }
 const config = Object.assign({}, defaultConfig, envConfig);
 
+// 连接 MongoDB
+connectMongo(config.mongo).catch((err) => {
+  console.error('MongoDB connection failed:', err);
+});
+
 // 加载中间件
 const middleware = require('./app/middleware');
+const authMiddleware = require('./app/middleware/auth');
 
 // 加载路由
 const router = require('./app/router');
 
 const app = new Koa();
+
+
 
 // 应用配置
 app.keys = config.keys || ['koa2-cli-secret-key'];
@@ -56,6 +66,9 @@ if (config.view && config.view.enable !== false) {
 // 请求体解析
 app.use(bodyParser(config.bodyParser || {}));
 
+// 认证中间件（JWT）
+app.use(authMiddleware(config.jwt, ['/api/admin/login']));
+
 // 自定义中间件
 if (middleware && typeof middleware === 'function') {
   app.use(middleware);
@@ -63,6 +76,7 @@ if (middleware && typeof middleware === 'function') {
 
 // 错误处理中间件
 app.use(async (ctx, next) => {
+
   try {
     await next();
   } catch (err) {

@@ -9,6 +9,10 @@ const userController = require('./controller/user');
 // 首页
 router.get('/', homeController.index);
 
+// 管理员登录
+const adminController = require('./controller/admin');
+router.post('/api/admin/login', adminController.login);
+
 // 用户相关路由
 router.get('/api/user', userController.list);
 router.get('/api/user/:id', userController.detail);
@@ -17,3 +21,4 @@ router.put('/api/user/:id', userController.update);
 router.delete('/api/user/:id', userController.delete);
 
 module.exports = router;
+

@@ -4,7 +4,7 @@
  */
 module.exports = {
   // 应用名称
-  name: 'koa2-cli',
+  name: 'koa3-cli',
   
   // 运行环境: development, production, test
   env: process.env.NODE_ENV || 'development',
@@ -65,6 +65,15 @@ module.exports = {
       max: 10
     }
   },
+
+  // MongoDB 配置
+  mongo: {
+    uri: process.env.MONGO_URI || 'mongodb://localhost:27017/koa3',
+    options: {
+      useNewUrlParser: true,
+      useUnifiedTopology: true
+    }
+  },
   
   // Redis配置（示例）
   redis: {
@@ -74,9 +83,17 @@ module.exports = {
     db: process.env.REDIS_DB || 0
   },
   
+
   // 日志配置
   logger: {
     level: process.env.LOG_LEVEL || 'info',
     dir: 'logs'
+  },
+
+  // JWT 配置
+  jwt: {
+    secret: process.env.JWT_SECRET || 'koa3-admin-secret',
+    expiresIn: '7d'
   }
 };
+

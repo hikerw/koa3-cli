@@ -1,30 +1,30 @@
 /**
- * 认证中间件示例
- * 可以根据需要启用
+ * JWT 认证中间件
  */
+const jwt = require('jsonwebtoken');
 
-module.exports = async (ctx, next) => {
-  // 示例：简单的token验证
-  const token = ctx.headers.authorization;
-  
-  if (!token && ctx.path.startsWith('/api')) {
-    // 某些公开接口可以跳过认证
-    const publicPaths = ['/api/user'];
-    if (!publicPaths.includes(ctx.path)) {
+module.exports = (jwtConfig = {}, whitelist = []) => {
+  return async (ctx, next) => {
+    if (!ctx.path.startsWith('/api')) return next();
+    if (whitelist.includes(ctx.path)) return next();
+
+    const authHeader = ctx.headers.authorization || '';
+    const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+
+    if (!token) {
       ctx.status = 401;
-      ctx.body = {
-        success: false,
-        message: 'Unauthorized'
-      };
+      ctx.body = { success: false, message: '未授权' };
       return;
     }
-  }
-  
-  // 验证token逻辑（示例）
-  if (token) {
-    // 这里应该验证token的有效性
-    // ctx.user = await verifyToken(token);
-  }
-  
-  await next();
+
+    try {
+      const payload = jwt.verify(token, jwtConfig.secret);
+      ctx.state.user = payload;
+      await next();
+    } catch (err) {
+      ctx.status = 401;
+      ctx.body = { success: false, message: '令牌无效或过期' };
+    }
+  };
 };
+

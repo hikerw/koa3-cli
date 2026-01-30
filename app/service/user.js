@@ -6,12 +6,16 @@ const userModel = require('../model/user');
 
 class UserService {
   /**
-   * 获取用户列表
+   * 获取用户列表（分页）
    */
-  async getUserList() {
-    // 这里应该从数据库获取数据
-    // 示例：返回模拟数据
-    return await userModel.findAll();
+  async getUserList({ page = 1, pageSize = 10 } = {}) {
+    const { items, total } = await userModel.findAll({ page, pageSize });
+    return {
+      list: items,
+      total,
+      page,
+      pageSize
+    };
   }
 
   /**
@@ -25,19 +29,34 @@ class UserService {
    * 创建用户
    */
   async createUser(userData) {
-    // 数据验证
-    if (!userData.name || !userData.email) {
-      throw new Error('Name and email are required');
+    try {
+      return await userModel.create(userData);
+    } catch (err) {
+      if (err && err.code === 11000) {
+        const error = new Error('email 已存在');
+        error.status = 400;
+        throw error;
+      }
+      throw err;
     }
-    return await userModel.create(userData);
   }
 
   /**
    * 更新用户
    */
   async updateUser(id, userData) {
-    return await userModel.update(id, userData);
+    try {
+      return await userModel.update(id, userData);
+    } catch (err) {
+      if (err && err.code === 11000) {
+        const error = new Error('email 已存在');
+        error.status = 400;
+        throw error;
+      }
+      throw err;
+    }
   }
+
 
   /**
    * 删除用户
@@ -48,3 +67,4 @@ class UserService {
 }
 
 module.exports = new UserService();
+

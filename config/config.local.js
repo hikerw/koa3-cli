@@ -20,5 +20,18 @@ module.exports = {
       password: '',
       database: 'test_dev'
     }
+  },
+
+  // 开发环境 Mongo 配置
+  mongo: {
+    uri: process.env.MONGO_URI || 'mongodb://localhost:27017/koa3-dev'
+  },
+
+  // JWT 配置覆盖（可选）
+  jwt: {
+    secret: process.env.JWT_SECRET || 'koa3-admin-secret-dev',
+    expiresIn: '7d'
   }
 };
+
+

@@ -7,18 +7,22 @@
 module.exports = async (ctx, next) => {
   // 1. 请求时间中间件
   ctx.requestTime = Date.now();
-  
-  // 2. 等待后续中间件执行
+
+  // 2. 继续执行后续中间件
   await next();
-  
-  // 3. API响应格式中间件（在响应返回前处理）
-  // 如果是API请求，统一响应格式
+
+  // 3. API 响应统一格式化（仅处理成功响应）
   if (ctx.path.startsWith('/api')) {
-    if (ctx.body && typeof ctx.body === 'object' && !ctx.body.success) {
+    const isAlreadyWrapped = ctx.body && typeof ctx.body === 'object' && Object.prototype.hasOwnProperty.call(ctx.body, 'success');
+    const isErrorStatus = ctx.status && ctx.status >= 400;
+
+    if (!isAlreadyWrapped && !isErrorStatus) {
       ctx.body = {
         success: true,
-        data: ctx.body
+        data: ctx.body ?? null,
+        message: ''
       };
     }
   }
 };
+
