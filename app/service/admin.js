@@ -1,6 +1,16 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const { Admin, ensureDefaultAdmin } = require('../model/admin');
+const Admin = require('../model/admin');
+
+async function ensureDefaultAdmin({ username, password }) {
+  if (!username || !password) return;
+  const exist = await Admin.findOne({ username: username.toLowerCase().trim() });
+  if (exist) return;
+  const salt = await bcrypt.genSalt(10);
+  const hashed = await bcrypt.hash(password, salt);
+  await Admin.create({ username: username.toLowerCase().trim(), password: hashed, isSuperAdmin: true });
+  console.log(`[Admin] 默认管理员已创建: ${username}`);
+}
 
 class AdminService {
   constructor(config) {
@@ -26,7 +36,7 @@ class AdminService {
       throw err;
     }
     const token = jwt.sign(
-      { id: user.id, username: user.username },
+      { id: user.id, username: user.username, isSuperAdmin: !!user.isSuperAdmin },
       this.jwtConfig.secret,
       { expiresIn: this.jwtConfig.expiresIn || '7d' }
     );

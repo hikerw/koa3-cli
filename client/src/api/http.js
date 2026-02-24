@@ -14,7 +14,12 @@ instance.interceptors.request.use((config) => {
 });
 
 instance.interceptors.response.use(
-  (resp) => resp.data,
+  (resp) => {
+    const body = resp.data;
+    // 后端统一包装为 { success, data, message }，成功时解包为 data
+    if (body && body.success === true && 'data' in body) return body.data;
+    return body;
+  },
   (error) => {
     const message = error?.response?.data?.message || error.message || '请求失败';
     if (error?.response?.status === 401) {

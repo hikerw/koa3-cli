@@ -90,10 +90,10 @@ module.exports = {
     dir: 'logs'
   },
 
-  // JWT 配置
+  // JWT 配置（生产环境务必通过环境变量 JWT_SECRET 设置强密钥）
   jwt: {
     secret: process.env.JWT_SECRET || 'koa3-admin-secret',
-    expiresIn: '7d'
+    expiresIn: process.env.JWT_EXPIRES_IN || '7d'
   }
 };
 

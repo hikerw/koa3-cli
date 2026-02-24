@@ -2,16 +2,23 @@
  * 用户服务层
  * 处理业务逻辑，与数据模型交互
  */
-const userModel = require('../model/user');
+const User = require('../model/user');
 
 class UserService {
   /**
    * 获取用户列表（分页）
    */
   async getUserList({ page = 1, pageSize = 10 } = {}) {
-    const { items, total } = await userModel.findAll({ page, pageSize });
+    const skip = (page - 1) * pageSize;
+    const [items, total] = await Promise.all([
+      User.find()
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(pageSize),
+      User.countDocuments()
+    ]);
     return {
-      list: items,
+      list: items.map((doc) => doc.toJSON()),
       total,
       page,
       pageSize
@@ -22,7 +29,8 @@ class UserService {
    * 根据ID获取用户
    */
   async getUserById(id) {
-    return await userModel.findById(id);
+    const user = await User.findById(id);
+    return user ? user.toJSON() : null;
   }
 
   /**
@@ -30,7 +38,8 @@ class UserService {
    */
   async createUser(userData) {
     try {
-      return await userModel.create(userData);
+      const user = await User.create(userData);
+      return user.toJSON();
     } catch (err) {
       if (err && err.code === 11000) {
         const error = new Error('email 已存在');
@@ -46,7 +55,11 @@ class UserService {
    */
   async updateUser(id, userData) {
     try {
-      return await userModel.update(id, userData);
+      const user = await User.findByIdAndUpdate(id, userData, {
+        new: true,
+        runValidators: true
+      });
+      return user ? user.toJSON() : null;
     } catch (err) {
       if (err && err.code === 11000) {
         const error = new Error('email 已存在');
@@ -57,14 +70,13 @@ class UserService {
     }
   }
 
-
   /**
    * 删除用户
    */
   async deleteUser(id) {
-    return await userModel.delete(id);
+    const res = await User.findByIdAndDelete(id);
+    return !!res;
   }
 }
 
 module.exports = new UserService();
-

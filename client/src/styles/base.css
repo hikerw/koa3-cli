@@ -1,13 +1,28 @@
 :root {
   color-scheme: light;
   --el-color-primary: #3b82f6;
+  --app-bg-page: #f5f7fa;
+  --app-bg-card: #fff;
+  --app-text-primary: #1f2933;
+  --app-text-secondary: #64748b;
+  --app-border: rgba(0, 0, 0, 0.06);
+}
+
+html.dark {
+  color-scheme: dark;
+  --app-bg-page: #0d1117;
+  --app-bg-card: #161b22;
+  --app-text-primary: #e6edf3;
+  --app-text-secondary: #8b949e;
+  --app-border: rgba(255, 255, 255, 0.08);
 }
 
 body {
   margin: 0;
-  background: #f5f7fa;
+  background: var(--app-bg-page);
   font-family: 'Inter', 'PingFang SC', 'Microsoft YaHei', sans-serif;
-  color: #1f2933;
+  color: var(--app-text-primary);
+  transition: background-color 0.2s ease, color 0.2s ease;
 }
 
 a {

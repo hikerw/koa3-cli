@@ -1,5 +1,6 @@
 /**
  * JWT 认证中间件
+ * ctx.state.user: { id, username, isSuperAdmin }
  */
 const jwt = require('jsonwebtoken');
 
@@ -19,7 +20,11 @@ module.exports = (jwtConfig = {}, whitelist = []) => {
 
     try {
       const payload = jwt.verify(token, jwtConfig.secret);
-      ctx.state.user = payload;
+      ctx.state.user = {
+        id: payload.id,
+        username: payload.username,
+        isSuperAdmin: !!payload.isSuperAdmin
+      };
       await next();
     } catch (err) {
       ctx.status = 401;

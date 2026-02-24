@@ -1,0 +1,15 @@
+/* Element Plus 深色模式变量覆盖（在 html.dark 时生效） */
+html.dark {
+  --el-bg-color: #161b22;
+  --el-bg-color-page: #0d1117;
+  --el-bg-color-overlay: #21262d;
+  --el-text-color-primary: #e6edf3;
+  --el-text-color-regular: #c9d1d9;
+  --el-text-color-secondary: #8b949e;
+  --el-border-color: rgba(255, 255, 255, 0.12);
+  --el-border-color-light: rgba(255, 255, 255, 0.08);
+  --el-border-color-lighter: rgba(255, 255, 255, 0.06);
+  --el-fill-color: rgba(255, 255, 255, 0.06);
+  --el-fill-color-light: rgba(255, 255, 255, 0.04);
+  --el-fill-color-blank: #161b22;
+}

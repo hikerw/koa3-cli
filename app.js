@@ -1,5 +1,4 @@
 const Koa = require('koa');
-const { Router } = require('@koa/router');
 const bodyParser = require('koa-bodyparser');
 const static = require('koa-static');
 const views = require('@ladjs/koa-views');
@@ -26,24 +25,35 @@ try {
 }
 const config = Object.assign({}, defaultConfig, envConfig);
 
-// 连接 MongoDB
-connectMongo(config.mongo).catch((err) => {
-  console.error('MongoDB connection failed:', err);
-});
+// 连接 MongoDB，成功后初始化默认菜单
+const menuService = require('./app/service/menu');
+connectMongo(config.mongo)
+  .then(() =>
+    menuService
+      .ensureDefaultMenus()
+      .then(() => menuService.ensureLogsMenu())
+      .catch((err) => console.error('[Menu] 默认菜单初始化失败:', err))
+  )
+  .catch((err) => {
+    console.error('MongoDB connection failed:', err);
+  });
 
 // 加载中间件
 const middleware = require('./app/middleware');
 const authMiddleware = require('./app/middleware/auth');
+const requireSuperAdmin = require('./app/middleware/requireSuperAdmin');
+const loginRateLimit = require('./app/middleware/loginRateLimit');
 
 // 加载路由
 const router = require('./app/router');
 
 const app = new Koa();
 
-
-
 // 应用配置
 app.keys = config.keys || ['koa2-cli-secret-key'];
+
+// 登录限流（仅对 /api/admin/login 生效，防暴力破解）
+app.use(loginRateLimit());
 
 // 静态资源
 if (config.static && config.static.enable !== false) {
@@ -68,6 +78,15 @@ app.use(bodyParser(config.bodyParser || {}));
 
 // 认证中间件（JWT）
 app.use(authMiddleware(config.jwt, ['/api/admin/login']));
+
+// 系统设置相关接口仅超级管理员可访问（/api/system/menus/current 除外，用于侧栏菜单）
+app.use(async (ctx, next) => {
+  const path = ctx.path;
+  if (path.startsWith('/api/system') && path !== '/api/system/menus/current') {
+    return requireSuperAdmin()(ctx, next);
+  }
+  await next();
+});
 
 // 自定义中间件
 if (middleware && typeof middleware === 'function') {
