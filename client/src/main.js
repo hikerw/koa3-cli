@@ -5,7 +5,10 @@ import 'element-plus/dist/index.css';
 // Element Plus 官方暗黑模式：html 有 .dark 时生效
 import 'element-plus/theme-chalk/dark/css-vars.css';
 import { initTheme } from './composables/useTheme';
+import { appTitle } from './config/app';
 import './styles/base.css';
+
+if (appTitle) document.title = appTitle;
 import './styles/dark.css';
 import App from './App.vue';
 import router from './router';

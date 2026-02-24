@@ -39,7 +39,7 @@ onMounted(loadSystemInfo);
 
 <style scoped>
 .home {
-  max-width: 560px;
+  max-width: 100%;
 }
 .info-card {
   border-radius: 12px;

@@ -32,9 +32,9 @@ function getSystemInfo() {
 class DashboardController {
   async stats(ctx) {
     try {
-      const stats = await getStats();
+      // const stats = await getStats();
       const system = getSystemInfo();
-      ctx.body = { stats, system };
+      ctx.body = {  system };
     } catch (err) {
       ctx.throw(500, err.message);
     }

@@ -1,10 +1,15 @@
 <template>
   <el-container class="app-layout">
-    <el-aside class="aside" width="220px">
-      <div class="logo">Koa3 Admin</div>
+    <el-aside class="aside" :width="asideWidth">
+      <div class="logo" :class="{ 'logo--collapsed': isCollapse }">
+        <span class="logo-text" v-show="!isCollapse">{{ appTitle }}</span>
+        <span class="logo-text logo-text--short" v-show="isCollapse">{{ appTitleShort }}</span>
+      </div>
       <el-menu
         :default-active="activeMenu"
         :default-openeds="defaultOpeneds"
+        :collapse="isCollapse"
+        :collapse-transition="true"
         class="aside-menu"
         router
       >
@@ -17,7 +22,10 @@
               </template>
               <template v-for="child in item.children" :key="child.id">
                 <el-sub-menu v-if="child.children && child.children.length" :index="'sub-' + child.id">
-                  <template #title>{{ child.title }}</template>
+                  <template #title>
+                    <el-icon><component :is="getIcon(child.icon)" /></el-icon>
+                    <span>{{ child.title }}</span>
+                  </template>
                   <el-menu-item v-for="c in child.children" :key="c.id" :index="c.path || '#'">
                     <el-icon><component :is="getIcon(c.icon)" /></el-icon>
                     <span>{{ c.title }}</span>
@@ -45,17 +53,35 @@
               <el-icon><Setting /></el-icon>
               <span>系统设置</span>
             </template>
-            <el-menu-item index="/system/users">用户管理</el-menu-item>
-            <el-menu-item index="/system/roles">角色管理</el-menu-item>
-            <el-menu-item index="/system/permissions">权限管理</el-menu-item>
-            <el-menu-item index="/system/menus">菜单管理</el-menu-item>
+            <el-menu-item index="/system/users">
+              <el-icon><User /></el-icon>
+              <span>用户管理</span>
+            </el-menu-item>
+            <el-menu-item index="/system/roles">
+              <el-icon><Key /></el-icon>
+              <span>角色管理</span>
+            </el-menu-item>
+            <el-menu-item index="/system/permissions">
+              <el-icon><Lock /></el-icon>
+              <span>权限管理</span>
+            </el-menu-item>
+            <el-menu-item index="/system/menus">
+              <el-icon><Menu /></el-icon>
+              <span>菜单管理</span>
+            </el-menu-item>
           </el-sub-menu>
         </template>
       </el-menu>
     </el-aside>
     <el-container class="main-wrap">
       <el-header class="header">
-        <div class="header-left" />
+        <div class="header-left">
+          <el-tooltip :content="isCollapse ? '展开菜单' : '折叠菜单'" placement="right">
+            <el-button link class="collapse-btn" @click="toggleCollapse" :aria-label="isCollapse ? '展开' : '折叠'">
+              <el-icon :size="20"><Fold v-if="!isCollapse" /><Expand v-else /></el-icon>
+            </el-button>
+          </el-tooltip>
+        </div>
         <div class="header-actions">
           <el-tooltip :content="isDark ? '切换为浅色' : '切换为深色'" placement="bottom">
             <el-button link class="theme-toggle" @click="toggleTheme" :aria-label="isDark ? '浅色模式' : '深色模式'">
@@ -77,11 +103,21 @@
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import * as Icons from '@element-plus/icons-vue';
-import { UserFilled, Setting, Document, Sunny, Moon } from '@element-plus/icons-vue';
+import { UserFilled, Setting, Document, Sunny, Moon, Fold, Expand, User, Key, Lock, Menu } from '@element-plus/icons-vue';
 import { fetchCurrentUserMenus } from '../api/system/menus';
 import { useTheme } from '../composables/useTheme';
+import { appTitle, appTitleShort } from '../config/app';
 
 const MENU_CACHE_KEY = 'menu_cache';
+const COLLAPSE_KEY = 'aside_collapse';
+
+const isCollapse = ref(localStorage.getItem(COLLAPSE_KEY) === '1');
+const asideWidth = computed(() => (isCollapse.value ? '64px' : '220px'));
+
+function toggleCollapse() {
+  isCollapse.value = !isCollapse.value;
+  localStorage.setItem(COLLAPSE_KEY, isCollapse.value ? '1' : '0');
+}
 
 /** 从缓存读取菜单（用于首屏渲染，避免闪烁） */
 function getMenuFromCache() {
@@ -188,7 +224,7 @@ onMounted(loadMenuTree);
 .aside {
   background: var(--app-bg-card);
   border-right: 1px solid var(--el-border-color-lighter);
-  transition: background-color 0.2s ease, border-color 0.2s ease;
+  transition: width 0.2s ease, background-color 0.2s ease, border-color 0.2s ease;
 }
 .logo {
   height: 56px;
@@ -200,9 +236,28 @@ onMounted(loadMenuTree);
   color: var(--app-text-primary);
   border-bottom: 1px solid var(--el-border-color-lighter);
   transition: color 0.2s ease;
+  overflow: hidden;
+  white-space: nowrap;
+}
+.logo-text--short {
+  font-size: 14px;
+}
+.aside-menu.el-menu--collapse {
+  width: 100%;
 }
 .aside-menu {
   border-right: none;
+}
+.collapse-btn {
+  padding: 4px;
+  color: var(--app-text-secondary);
+}
+.collapse-btn:hover {
+  color: var(--el-color-primary);
+}
+.header-left {
+  display: flex;
+  align-items: center;
 }
 .main-wrap {
   display: flex;

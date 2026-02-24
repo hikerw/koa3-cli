@@ -14,8 +14,8 @@
         </el-tooltip>
         <div class="login-header">
           <div class="login-logo">
-            <span class="logo-text">Koa3</span>
-            <span class="logo-badge">Admin</span>
+            <span class="logo-text">{{ loginLogoMain }}</span>
+            <span class="logo-badge" v-if="loginLogoBadge">{{ loginLogoBadge }}</span>
           </div>
           <p class="login-subtitle">欢迎回来，请登录您的账号</p>
         </div>
@@ -65,19 +65,32 @@
         </el-form>
       </div>
 
-      <p class="login-footer">Koa3 Admin · 后台管理系统</p>
+      <p class="login-footer">{{ appTitle }} · 后台管理系统</p>
     </div>
   </div>
 </template>
 
 <script setup>
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import { User, Lock, Sunny, Moon } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
 import { login } from '../api/auth';
 import { useTheme } from '../composables/useTheme';
+import { appTitle } from '../config/app';
 
 const { isDark, toggleTheme } = useTheme();
+
+// 登录页 logo：按空格拆成主标题 + 副标（无空格则只显示主标题）
+const loginLogoMain = computed(() => {
+  const t = appTitle || '';
+  const i = t.indexOf(' ');
+  return i > 0 ? t.slice(0, i) : t || 'Koa3';
+});
+const loginLogoBadge = computed(() => {
+  const t = appTitle || '';
+  const i = t.indexOf(' ');
+  return i > 0 ? t.slice(i + 1) : '';
+});
 
 const loading = ref(false);
 const formRef = ref();
