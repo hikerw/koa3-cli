@@ -1,49 +1,51 @@
 /**
  * 用户服务层
- * 处理业务逻辑，与数据模型交互
+ * 处理业务逻辑与数据访问（示例为内存存储，实际可替换为数据库）
  */
-const userModel = require('../model/user');
+// 示例：内存存储（实际项目中应连接数据库）
+let users = [
+  { id: 1, name: '张三', email: 'zhangsan@example.com', createdAt: new Date() },
+  { id: 2, name: '李四', email: 'lisi@example.com', createdAt: new Date() }
+];
 
 class UserService {
-  /**
-   * 获取用户列表
-   */
   async getUserList() {
-    // 这里应该从数据库获取数据
-    // 示例：返回模拟数据
-    return await userModel.findAll();
+    return users;
   }
 
-  /**
-   * 根据ID获取用户
-   */
   async getUserById(id) {
-    return await userModel.findById(id);
+    return users.find(user => user.id === parseInt(id, 10));
   }
 
-  /**
-   * 创建用户
-   */
   async createUser(userData) {
-    // 数据验证
     if (!userData.name || !userData.email) {
       throw new Error('Name and email are required');
     }
-    return await userModel.create(userData);
+    const newUser = {
+      id: users.length > 0 ? Math.max(...users.map(u => u.id)) + 1 : 1,
+      ...userData,
+      createdAt: new Date()
+    };
+    users.push(newUser);
+    return newUser;
   }
 
-  /**
-   * 更新用户
-   */
   async updateUser(id, userData) {
-    return await userModel.update(id, userData);
+    const index = users.findIndex(user => user.id === parseInt(id, 10));
+    if (index === -1) return null;
+    users[index] = {
+      ...users[index],
+      ...userData,
+      updatedAt: new Date()
+    };
+    return users[index];
   }
 
-  /**
-   * 删除用户
-   */
   async deleteUser(id) {
-    return await userModel.delete(id);
+    const index = users.findIndex(user => user.id === parseInt(id, 10));
+    if (index === -1) return false;
+    users.splice(index, 1);
+    return true;
   }
 }
 
