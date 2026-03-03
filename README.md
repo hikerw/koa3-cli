@@ -38,7 +38,7 @@ npm run dev
 ## 项目结构
 
 ```
-koa2-cli/
+koa3-cli/
 ├── app/                    # 应用代码目录
 │   ├── controller/        # 控制器目录
 │   │   ├── home.js        # 首页控制器
@@ -98,18 +98,6 @@ npm start
 - 首页: http://localhost:3000
 - API 示例: http://localhost:3000/api/user
 - 文档: http://localhost:3000/index.html
-
-### 文档开发
-
-启动 VuePress 文档开发服务器：
-```bash
-npm run docs:dev
-```
-
-构建文档为静态文件：
-```bash
-npm run docs:build
-```
 
 ## 环境配置
 
@@ -196,8 +184,8 @@ router.get('/api/product', productController.list);
 
 ## 技术栈
 
-- **Koa2**: Web 框架
-- **koa-router**: 路由
+- **Koa3**: Web 框架
+- **@koa/router**: 路由
 - **koa-bodyparser**: 请求体解析
 - **koa-static**: 静态资源服务
 - **koa-views**: 模板引擎支持

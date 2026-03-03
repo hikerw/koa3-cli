@@ -1,5 +1,4 @@
 const Koa = require('koa');
-const { Router } = require('@koa/router');
 const bodyParser = require('koa-bodyparser');
 const static = require('koa-static');
 const views = require('@ladjs/koa-views');
@@ -33,7 +32,7 @@ const router = require('./app/router');
 const app = new Koa();
 
 // 应用配置
-app.keys = config.keys || ['koa2-cli-secret-key'];
+app.keys = config.keys || ['koa3-cli-secret-key'];
 
 // 静态资源
 if (config.static && config.static.enable !== false) {

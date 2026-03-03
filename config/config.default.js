@@ -4,7 +4,7 @@
  */
 module.exports = {
   // 应用名称
-  name: 'koa2-cli',
+  name: 'koa3-cli',
   
   // 运行环境: development, production, test
   env: process.env.NODE_ENV || 'development',
@@ -13,7 +13,7 @@ module.exports = {
   port: process.env.PORT || 3000,
   
   // 密钥，用于加密cookie等
-  keys: process.env.KEYS ? process.env.KEYS.split(',') : ['koa2-cli-secret-key'],
+  keys: process.env.KEYS ? process.env.KEYS.split(',') : ['koa3-cli-secret-key'],
   
   // 静态资源配置
   static: {
