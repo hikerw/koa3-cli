@@ -13,7 +13,7 @@ module.exports = {
   port: process.env.PORT || 3000,
   
   // 密钥，用于加密cookie等
-  keys: process.env.KEYS ? process.env.KEYS.split(',') : ['koa2-cli-secret-key'],
+  keys: process.env.KEYS ? process.env.KEYS.split(',') : ['koa3-cli-secret-key'],
   
   // 静态资源配置
   static: {

@@ -1,10 +1,10 @@
 {
   "name": "koa3-cli",
-  "version": "1.0.2",
+  "version": "1.0.4",
   "description": "Koa3脚手架",
   "main": "app.js",
   "bin": {
-    "koa3-cli": "./bin/cli.js"
+    "koa3-cli": "bin/cli.js"
   },
   "preferGlobal": true,
   "scripts": {

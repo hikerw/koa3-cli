@@ -173,21 +173,21 @@ class UserController {
   }
 }</code></pre>
         <h4>service/</h4>
-        <p>服务层目录，处理业务逻辑。</p>
+        <p>服务层目录，处理业务逻辑与数据访问。</p>
         <pre><code class="language-javascript">// app/service/user.js
 class UserService {
   async getUserList() {
-    return await userModel.findAll();
+    return users; // 或数据库查询
   }
 }</code></pre>
         <h4>model/</h4>
-        <p>数据模型目录，处理数据访问。</p>
+        <p>数据模型目录，仅定义数据格式（结构、字段）。</p>
         <pre><code class="language-javascript">// app/model/user.js
-class UserModel {
-  async findAll() {
-    // 数据库查询逻辑
-  }
-}</code></pre>
+const userSchema = {
+  id: null, name: '', email: '',
+  createdAt: null, updatedAt: null
+};
+module.exports = { userSchema };</code></pre>
         <h4>middleware/</h4>
         <p>中间件目录，处理请求预处理和后处理。</p>
         <pre><code class="language-javascript">// app/middleware/index.js

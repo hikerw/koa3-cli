@@ -7,7 +7,7 @@ class HomeController {
    */
   async index(ctx) {
     ctx.body = {
-      message: 'Welcome to Koa2 CLI',
+      message: 'Welcome to Koa3 CLI',
       version: '1.0.0',
       timestamp: new Date().toISOString()
     };

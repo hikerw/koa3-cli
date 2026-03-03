@@ -50,7 +50,7 @@ const router = require('./app/router');
 const app = new Koa();
 
 // 应用配置
-app.keys = config.keys || ['koa2-cli-secret-key'];
+app.keys = config.keys || ['koa3-cli-secret-key'];
 
 // 登录限流（仅对 /api/admin/login 生效，防暴力破解）
 app.use(loginRateLimit());
