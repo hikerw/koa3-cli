@@ -4,14 +4,16 @@ let connectionPromise = null;
 
 async function connectMongo(mongoConfig = {}) {
   const { uri, options = {} } = mongoConfig;
-  if (!uri) {
+  const normalizedUri = typeof uri === 'string' ? uri.trim() : '';
+
+  if (!normalizedUri) {
     console.warn('Mongo configuration missing, skip connecting.');
     return null;
   }
   if (connectionPromise) return connectionPromise;
 
   mongoose.set('strictQuery', true);
-  connectionPromise = mongoose.connect(uri, options);
+  connectionPromise = mongoose.connect(normalizedUri, options);
 
   mongoose.connection.on('connected', () => {
     console.log('[MongoDB] connected');

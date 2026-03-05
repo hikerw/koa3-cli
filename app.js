@@ -6,6 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const { createLogger } = require('./app/lib/logger');
 const createRequestLogger = require('./app/middleware/requestLogger');
+const { connectMongo } = require('./app/model/db');
 
 require('dotenv').config();
 
@@ -111,9 +112,34 @@ process.on('uncaughtException', (error) => {
 });
 
 const port = config.port || 3000;
-app.listen(port, () => {
-  logger.info(`Server is running on http://localhost:${port}`);
-  logger.info(`Environment: ${config.env}`);
-});
+
+function maskMongoUri(uri) {
+  if (!uri || typeof uri !== 'string') return '';
+  return uri.replace(/\/\/([^:\/]+):([^@\/]+)@/, '//$1:***@');
+}
+
+async function bootstrap() {
+  try {
+    await connectMongo(config.mongo || {});
+    if (config.mongo && config.mongo.uri) {
+      logger.info('MongoDB connected', { uri: maskMongoUri(config.mongo.uri.trim()) });
+    } else {
+      logger.warn('MongoDB config not found, skip connecting');
+    }
+  } catch (error) {
+    logger.error('MongoDB connect failed', {
+      message: error.message,
+      stack: error.stack
+    });
+    process.exit(1);
+  }
+
+  app.listen(port, () => {
+    logger.info(`Server is running on http://localhost:${port}`);
+    logger.info(`Environment: ${config.env}`);
+  });
+}
+
+bootstrap();
 
 module.exports = app;
