@@ -1,37 +1,36 @@
 /**
- * 默认配置文件
- * 所有环境都会加载此配置
+ * Default config loaded in all environments.
  */
 module.exports = {
-  // 应用名称
+  // Application name
   name: 'koa3-cli',
-  
-  // 运行环境: development, production, test
+
+  // Runtime env: development, production, test
   env: process.env.NODE_ENV || 'development',
-  
-  // 服务端口
+
+  // Server port
   port: process.env.PORT || 3000,
-  
-  // 密钥，用于加密cookie等
+
+  // Cookie signing keys
   keys: process.env.KEYS ? process.env.KEYS.split(',') : ['koa3-cli-secret-key'],
-  
-  // 静态资源配置
+
+  // Static assets
   static: {
     enable: true,
     dir: 'public',
     options: {
-      maxAge: 365 * 24 * 60 * 60 * 1000, // 1年
+      maxAge: 365 * 24 * 60 * 60 * 1000,
       gzip: true
     }
   },
-  
-  // VuePress 文档配置
+
+  // Docs build config
   docs: {
     enable: true,
     buildDir: 'public/docs'
   },
-  
-  // 视图配置
+
+  // View engine
   view: {
     enable: true,
     root: 'app/view',
@@ -42,15 +41,15 @@ module.exports = {
       }
     }
   },
-  
-  // bodyParser配置
+
+  // bodyParser
   bodyParser: {
     enableTypes: ['json', 'form', 'text'],
     jsonLimit: '10mb',
     formLimit: '10mb'
   },
-  
-  // 数据库配置（示例）
+
+  // Database (example)
   database: {
     client: 'mysql',
     connection: {
@@ -66,34 +65,19 @@ module.exports = {
     }
   },
 
-  // MongoDB 配置
-  mongo: {
-    uri: process.env.MONGO_URI || 'mongodb://localhost:27017/koa3',
-    options: {
-      useNewUrlParser: true,
-      useUnifiedTopology: true
-    }
-  },
-  
-  // Redis配置（示例）
+  // Redis (example)
   redis: {
     host: process.env.REDIS_HOST || 'localhost',
     port: process.env.REDIS_PORT || 6379,
     password: process.env.REDIS_PASSWORD || '',
     db: process.env.REDIS_DB || 0
   },
-  
 
-  // 日志配置
+  // Logger
   logger: {
     level: process.env.LOG_LEVEL || 'info',
-    dir: 'logs'
-  },
-
-  // JWT 配置（生产环境务必通过环境变量 JWT_SECRET 设置强密钥）
-  jwt: {
-    secret: process.env.JWT_SECRET || 'koa3-admin-secret',
-    expiresIn: process.env.JWT_EXPIRES_IN || '7d'
+    dir: process.env.LOG_DIR || 'logs',
+    enableConsole: process.env.LOG_ENABLE_CONSOLE !== 'false',
+    enableFile: process.env.LOG_ENABLE_FILE !== 'false'
   }
 };
-
