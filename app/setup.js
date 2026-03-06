@@ -1,6 +1,6 @@
 /**
- * 应用挂载：静态资源、视图、中间件、路由等
- * 保持 app.js 只做「创建实例 + 调用 setup + 监听 + 启动」
+ * 应用挂载：静态资源、视图、中间件、路由、MongoDB 连接、HTTP 监听
+ * 保持 app.js 只做「创建实例 + 调用 setup + 进程级监听」
  */
 const path = require('path');
 const fs = require('fs');
@@ -14,10 +14,16 @@ const notFound = require('./middleware/notFound');
 const authMiddleware = require('./middleware/auth');
 const middleware = require('./middleware');
 const router = require('./router');
+const { connectMongo } = require('./model/db');
 
 const rootDir = path.join(__dirname, '..');
 
-function setup(app, config, logger) {
+function maskMongoUri(uri) {
+  if (!uri || typeof uri !== 'string') return '';
+  return uri.replace(/\/\/([^:\/]+):([^@\/]+)@/, '//$1:***@');
+}
+
+async function setup(app, config, logger) {
   // 静态资源
   if (config.static && config.static.enable !== false) {
     const staticPath = path.join(rootDir, config.static.dir || 'public');
@@ -49,6 +55,29 @@ function setup(app, config, logger) {
   app.use(createErrorHandler(config, logger));
   app.use(router.routes()).use(router.allowedMethods());
   app.use(notFound);
+
+  // MongoDB 连接
+  try {
+    await connectMongo(config.mongo || {});
+    if (config.mongo && config.mongo.uri) {
+      logger.info('MongoDB connected', { uri: maskMongoUri(config.mongo.uri.trim()) });
+    } else {
+      logger.warn('MongoDB config not found, skip connecting');
+    }
+  } catch (error) {
+    logger.error('MongoDB connect failed', {
+      message: error.message,
+      stack: error.stack
+    });
+    process.exit(1);
+  }
+
+  // HTTP 监听
+  const port = config.port || 3000;
+  app.listen(port, () => {
+    logger.info(`Server is running on http://localhost:${port}`);
+    logger.info(`Environment: ${config.env}`);
+  });
 }
 
 module.exports = setup;
