@@ -1,4 +1,4 @@
-﻿const Koa = require('koa');
+const Koa = require('koa');
 const bodyParser = require('koa-bodyparser');
 const serveStatic = require('koa-static');
 const views = require('@ladjs/koa-views');
@@ -6,6 +6,7 @@ const path = require('path');
 const fs = require('fs');
 const { createLogger } = require('./app/lib/logger');
 const createRequestLogger = require('./app/middleware/requestLogger');
+const authMiddleware = require('./app/middleware/auth');
 const { connectMongo } = require('./app/model/db');
 
 require('dotenv').config();
@@ -59,6 +60,11 @@ app.use(createRequestLogger(logger));
 if (middleware && typeof middleware === 'function') {
   app.use(middleware);
 }
+
+// JWT 认证：/api 请求需携带有效 token，白名单路径不校验
+const jwtConfig = config.jwt || {};
+const authWhitelist = ['/api/admin/login'];
+app.use(authMiddleware(jwtConfig, authWhitelist));
 
 app.use(async (ctx, next) => {
   try {

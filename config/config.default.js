@@ -73,6 +73,12 @@ module.exports = {
     db: process.env.REDIS_DB || 0
   },
 
+  // JWT（登录签发与接口鉴权，环境配置可覆盖 secret）
+  jwt: {
+    secret: process.env.JWT_SECRET || 'koa3-cli-secret-key',
+    expiresIn: process.env.JWT_EXPIRES_IN || '7d'
+  },
+
   // Logger
   logger: {
     level: process.env.LOG_LEVEL || 'info',
