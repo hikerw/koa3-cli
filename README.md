@@ -49,12 +49,16 @@ koa3-cli/
 │   │   └── user.js        # 用户模型
 │   ├── middleware/        # 中间件目录
 │   │   ├── index.js       # 中间件入口
-│   │   └── auth.js        # 认证中间件示例
+│   │   ├── auth.js        # 认证中间件示例
+│   │   └── requestLogger.js # 请求日志中间件
+│   ├── lib/               # 基础能力目录
+│   │   └── logger.js      # 日志工具
 │   └── router.js          # 路由配置
 ├── config/                # 配置文件目录
 │   ├── config.default.js  # 默认配置
 │   ├── config.local.js    # 本地开发配置
 │   └── config.prod.js     # 生产环境配置
+├── logs/                  # 日志输出目录（运行时自动创建）
 ├── public/                # 静态资源目录
 │   └── index.html         # 首页
 ├── app.js                 # 应用入口文件
@@ -71,6 +75,7 @@ koa3-cli/
 - ✅ MVC 架构（Controller/Service/Model）
 - ✅ 中间件支持
 - ✅ 统一的错误处理
+- ✅ 内置日志系统（访问日志、错误日志、请求追踪）
 - ✅ RESTful API 示例
 
 ## 快速开始
@@ -108,6 +113,31 @@ npm start
 - 默认: 加载 `config.default.js`
 
 可以通过 `.env` 文件配置环境变量（参考 `.env.example`）。
+
+### 日志配置
+
+日志系统默认开启控制台和文件输出，支持 4 个级别：`debug`、`info`、`warn`、`error`。
+
+`.env` 可配置项：
+
+```bash
+LOG_LEVEL=info
+LOG_DIR=logs
+LOG_ENABLE_CONSOLE=true
+LOG_ENABLE_FILE=true
+```
+
+运行后会在日志目录按天生成文件：
+
+- `<date>.log`：通用应用日志
+- `<date>.access.log`：请求访问日志（JSON 行格式）
+- `<date>.error.log`：错误级别日志
+
+请求日志中间件会自动处理 `x-request-id`：
+
+- 如果请求头带有 `x-request-id`，服务端会透传并写入日志
+- 如果没有，服务端会自动生成并在响应头返回
+- 出错日志会带上 `requestId`，便于串联排查
 
 ## API 示例
 
