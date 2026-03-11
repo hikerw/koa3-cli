@@ -38,8 +38,8 @@ class UserController {
    * 获取用户详情
    */
   async detail(ctx) {
+    const { id } = ctx.state.validated ? ctx.state.validated.params : ctx.params;
     try {
-      const { id } = ctx.params;
       const user = await userService.getUserById(id);
       if (!user) {
         ctx.status = 404;
@@ -56,12 +56,13 @@ class UserController {
    * 创建用户
    */
   async create(ctx) {
+    const userData = ctx.state.validated ? ctx.state.validated.body : ctx.request.body;
     try {
-      const validationError = validateUserPayload(ctx.request.body, { allowPartial: false });
+      const validationError = validateUserPayload(userData, { allowPartial: false });
       if (validationError) {
         ctx.throw(400, validationError);
       }
-      const user = await userService.createUser(ctx.request.body);
+      const user = await userService.createUser(userData);
       ctx.status = 201;
       ctx.body = user;
     } catch (error) {
@@ -73,13 +74,14 @@ class UserController {
    * 更新用户
    */
   async update(ctx) {
+    const { id } = ctx.state.validated ? ctx.state.validated.params : ctx.params;
+    const userData = ctx.state.validated ? ctx.state.validated.body : ctx.request.body;
     try {
-      const validationError = validateUserPayload(ctx.request.body, { allowPartial: true });
+      const validationError = validateUserPayload(userData, { allowPartial: true });
       if (validationError) {
         ctx.throw(400, validationError);
       }
-      const { id } = ctx.params;
-      const user = await userService.updateUser(id, ctx.request.body);
+      const user = await userService.updateUser(id, userData);
       if (!user) {
         ctx.status = 404;
         ctx.body = { message: 'User not found' };
@@ -95,8 +97,8 @@ class UserController {
    * 删除用户
    */
   async delete(ctx) {
+    const { id } = ctx.state.validated ? ctx.state.validated.params : ctx.params;
     try {
-      const { id } = ctx.params;
       const result = await userService.deleteUser(id);
       if (!result) {
         ctx.status = 404;
@@ -112,4 +114,3 @@ class UserController {
 }
 
 module.exports = new UserController();
-
