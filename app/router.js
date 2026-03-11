@@ -1,4 +1,7 @@
 const { Router } = require('@koa/router');
+const { validate } = require('./lib/validator');
+const userSchema = require('./schema/user');
+
 const router = new Router();
 
 // 加载控制器
@@ -11,9 +14,9 @@ router.get('/', homeController.index);
 
 // 用户相关路由
 router.get('/api/user', userController.list);
-router.get('/api/user/:id', userController.detail);
-router.post('/api/user', userController.create);
-router.put('/api/user/:id', userController.update);
-router.delete('/api/user/:id', userController.delete);
+router.get('/api/user/:id', validate({ params: userSchema.idParam }), userController.detail);
+router.post('/api/user', validate({ body: userSchema.createUserBody }), userController.create);
+router.put('/api/user/:id', validate({ params: userSchema.idParam, body: userSchema.updateUserBody }), userController.update);
+router.delete('/api/user/:id', validate({ params: userSchema.idParam }), userController.delete);
 
 module.exports = router;

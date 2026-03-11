@@ -1,4 +1,4 @@
-﻿const userService = require('../service/user');
+const userService = require('../service/user');
 
 function logMeta(ctx, extra = {}) {
   return {
@@ -22,7 +22,7 @@ class UserController {
   }
 
   async detail(ctx) {
-    const { id } = ctx.params;
+    const { id } = ctx.state.validated ? ctx.state.validated.params : ctx.params;
 
     try {
       const user = await userService.getUserById(id);
@@ -42,7 +42,7 @@ class UserController {
   }
 
   async create(ctx) {
-    const userData = ctx.request.body;
+    const userData = ctx.state.validated ? ctx.state.validated.body : ctx.request.body;
 
     try {
       const user = await userService.createUser(userData);
@@ -56,8 +56,8 @@ class UserController {
   }
 
   async update(ctx) {
-    const { id } = ctx.params;
-    const userData = ctx.request.body;
+    const { id } = ctx.state.validated ? ctx.state.validated.params : ctx.params;
+    const userData = ctx.state.validated ? ctx.state.validated.body : ctx.request.body;
 
     try {
       const user = await userService.updateUser(id, userData);
@@ -77,7 +77,7 @@ class UserController {
   }
 
   async delete(ctx) {
-    const { id } = ctx.params;
+    const { id } = ctx.state.validated ? ctx.state.validated.params : ctx.params;
 
     try {
       const result = await userService.deleteUser(id);

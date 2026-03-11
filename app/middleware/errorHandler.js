@@ -7,9 +7,11 @@ module.exports = function createErrorHandler(config, logger) {
       await next();
     } catch (err) {
       ctx.status = err.status || 500;
+      const firstDetailMessage = err.details && err.details[0] && err.details[0].message;
       ctx.body = {
         success: false,
-        message: err.message || 'Internal Server Error',
+        message: firstDetailMessage || err.message || 'Internal Server Error',
+        ...(err.details && { errors: err.details }),
         ...(config.env === 'development' && { stack: err.stack })
       };
 

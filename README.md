@@ -50,9 +50,13 @@ koa3-cli/
 │   ├── middleware/        # 中间件目录
 │   │   ├── index.js       # 中间件入口
 │   │   ├── auth.js        # 认证中间件示例
-│   │   └── requestLogger.js # 请求日志中间件
+│   │   ├── requestLogger.js # 请求日志中间件
+│   │   └── errorHandler.js  # 全局错误处理
 │   ├── lib/               # 基础能力目录
-│   │   └── logger.js      # 日志工具
+│   │   ├── logger.js      # 日志工具
+│   │   └── validator.js   # 参数校验中间件（Joi）
+│   ├── schema/            # 参数校验规则目录
+│   │   └── user.js        # 用户相关校验规则
 │   └── router.js          # 路由配置
 ├── config/                # 配置文件目录
 │   ├── config.default.js  # 默认配置
@@ -74,8 +78,9 @@ koa3-cli/
 - ✅ 支持多环境配置（development/production）
 - ✅ MVC 架构（Controller/Service/Model）
 - ✅ 中间件支持
-- ✅ 统一的错误处理
+- ✅ 统一的错误处理（校验失败返回 422，message 为第一条校验提示）
 - ✅ 内置日志系统（访问日志、错误日志、请求追踪）
+- ✅ 基于 Joi 的参数校验（body/query/params，校验结果挂到 `ctx.state.validated`）
 - ✅ RESTful API 示例
 
 ## 快速开始
@@ -138,6 +143,57 @@ LOG_ENABLE_FILE=true
 - 如果请求头带有 `x-request-id`，服务端会透传并写入日志
 - 如果没有，服务端会自动生成并在响应头返回
 - 出错日志会带上 `requestId`，便于串联排查
+
+## 参数校验
+
+使用 Joi 进行请求参数校验，通过 `app/lib/validator.js` 的 `validate(schemas)` 生成中间件。
+
+### 使用方式
+
+在路由中挂载校验中间件，按需校验 `body`、`query`、`params`：
+
+```javascript
+const { validate } = require('./lib/validator');
+const userSchema = require('./schema/user');
+
+// 只校验路径参数
+router.get('/api/user/:id', validate({ params: userSchema.idParam }), userController.detail);
+
+// 只校验请求体
+router.post('/api/user', validate({ body: userSchema.createUserBody }), userController.create);
+
+// 同时校验 params + body
+router.put('/api/user/:id', validate({
+  params: userSchema.idParam,
+  body: userSchema.updateUserBody
+}), userController.update);
+```
+
+校验通过后，结果在 **`ctx.state.validated`** 中：
+
+- `ctx.state.validated.body`：校验后的 body
+- `ctx.state.validated.query`：校验后的 query
+- `ctx.state.validated.params`：校验后的 params
+
+控制器中应优先使用 `ctx.state.validated`，未走校验的路由可继续使用 `ctx.request.body` / `ctx.params`。
+
+### 校验失败响应
+
+校验未通过时返回 **422**，`message` 为**第一条**未通过项的提示，`errors` 为全部校验项：
+
+```json
+{
+  "success": false,
+  "message": "用户名为必填",
+  "errors": [
+    { "field": "name", "message": "用户名为必填" }
+  ]
+}
+```
+
+### 添加新的校验规则
+
+在 `app/schema/` 下新增或修改 schema 文件，使用 Joi 定义规则（支持 `.messages()` 自定义提示），在路由中通过 `validate({ body: xxx })` 等引用即可。详见 `app/schema/user.js`。
 
 ## API 示例
 
@@ -212,11 +268,18 @@ router.get('/api/product', productController.list);
 
 在 `app/middleware/` 目录下创建中间件文件，然后在 `app/middleware/index.js` 中引入使用。
 
+### 添加参数校验
+
+1. 在 `app/schema/` 下定义 Joi 规则（可参考 `app/schema/user.js`）
+2. 在 `app/router.js` 中为对应路由添加 `validate({ body, query, params })` 中间件
+3. 在控制器中从 `ctx.state.validated` 读取已校验数据
+
 ## 技术栈
 
 - **Koa3**: Web 框架
 - **@koa/router**: 路由
 - **koa-bodyparser**: 请求体解析
+- **joi**: 参数校验（body/query/params）
 - **koa-static**: 静态资源服务
 - **koa-views**: 模板引擎支持
 - **dotenv**: 环境变量管理
