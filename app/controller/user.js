@@ -3,22 +3,6 @@
  */
 const userService = require('../service/user');
 
-const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-
-function validateUserPayload(data, { allowPartial = false } = {}) {
-  const { name, email } = data || {};
-
-  if (!allowPartial) {
-    if (!name || typeof name !== 'string') return 'name 不能为空';
-    if (!email || typeof email !== 'string' || !emailRegex.test(email)) return 'email 不合法';
-  } else {
-    if (!name && !email) return '至少提供 name 或 email';
-    if (name && typeof name !== 'string') return 'name 类型必须是字符串';
-    if (email && (typeof email !== 'string' || !emailRegex.test(email))) return 'email 不合法';
-  }
-  return null;
-}
-
 class UserController {
   /**
    * 获取用户列表（分页）
@@ -58,10 +42,6 @@ class UserController {
   async create(ctx) {
     const userData = ctx.state.validated ? ctx.state.validated.body : ctx.request.body;
     try {
-      const validationError = validateUserPayload(userData, { allowPartial: false });
-      if (validationError) {
-        ctx.throw(400, validationError);
-      }
       const user = await userService.createUser(userData);
       ctx.status = 201;
       ctx.body = user;
@@ -77,10 +57,6 @@ class UserController {
     const { id } = ctx.state.validated ? ctx.state.validated.params : ctx.params;
     const userData = ctx.state.validated ? ctx.state.validated.body : ctx.request.body;
     try {
-      const validationError = validateUserPayload(userData, { allowPartial: true });
-      if (validationError) {
-        ctx.throw(400, validationError);
-      }
       const user = await userService.updateUser(id, userData);
       if (!user) {
         ctx.status = 404;
