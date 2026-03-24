@@ -1,4 +1,27 @@
 const userService = require('../service/user');
+const { Joi, validateValue } = require('../lib/validator');
+
+const idParamSchema = Joi.object({
+  id: Joi.string().required().messages({ 'any.required': '用户 id 不能为空' })
+});
+
+const createUserBodySchema = Joi.object({
+  name: Joi.string().trim().min(1).max(100).required().messages({
+    'any.required': '用户名为必填',
+    'string.empty': '用户名不能为空',
+    'string.max': '用户名不能超过 100 个字符'
+  }),
+  email: Joi.string().email().allow('').optional(),
+  age: Joi.number().integer().min(0).max(150).optional()
+}).options({ stripUnknown: true });
+
+const updateUserBodySchema = Joi.object({
+  name: Joi.string().trim().min(1).max(100).optional(),
+  email: Joi.string().email().allow('').optional(),
+  age: Joi.number().integer().min(0).max(150).optional()
+}).min(1).messages({
+  'object.min': '至少需要提供一个要更新的字段'
+}).options({ stripUnknown: true });
 
 function logMeta(ctx, extra = {}) {
   return {
@@ -22,7 +45,7 @@ class UserController {
   }
 
   async detail(ctx) {
-    const { id } = ctx.state.validated ? ctx.state.validated.params : ctx.params;
+    const { id } = await validateValue(idParamSchema, ctx.params);
 
     try {
       const user = await userService.getUserById(id);
@@ -42,7 +65,7 @@ class UserController {
   }
 
   async create(ctx) {
-    const userData = ctx.state.validated ? ctx.state.validated.body : ctx.request.body;
+    const userData = await validateValue(createUserBodySchema, ctx.request.body);
 
     try {
       const user = await userService.createUser(userData);
@@ -56,8 +79,8 @@ class UserController {
   }
 
   async update(ctx) {
-    const { id } = ctx.state.validated ? ctx.state.validated.params : ctx.params;
-    const userData = ctx.state.validated ? ctx.state.validated.body : ctx.request.body;
+    const { id } = await validateValue(idParamSchema, ctx.params);
+    const userData = await validateValue(updateUserBodySchema, ctx.request.body);
 
     try {
       const user = await userService.updateUser(id, userData);
@@ -77,7 +100,7 @@ class UserController {
   }
 
   async delete(ctx) {
-    const { id } = ctx.state.validated ? ctx.state.validated.params : ctx.params;
+    const { id } = await validateValue(idParamSchema, ctx.params);
 
     try {
       const result = await userService.deleteUser(id);

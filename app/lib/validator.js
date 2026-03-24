@@ -43,7 +43,28 @@ function validate(schemas = {}) {
   };
 }
 
+/**
+ * 在控制器内校验单个对象，失败时抛出与 validate() 中间件相同形态的 422 错误
+ */
+async function validateValue(schema, value, validateOptions = { stripUnknown: true }) {
+  try {
+    return await schema.validateAsync(value ?? {}, validateOptions);
+  } catch (err) {
+    if (!Joi.isError(err)) {
+      throw err;
+    }
+    const validationError = new Error(err.message || 'Validation Failed');
+    validationError.status = 422;
+    validationError.details = err.details.map(d => ({
+      field: d.path.join('.'),
+      message: d.message
+    }));
+    throw validationError;
+  }
+}
+
 module.exports = {
   validate,
+  validateValue,
   Joi
 };
