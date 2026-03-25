@@ -1,6 +1,6 @@
 const roleService = require('../service/role');
 const logService = require('../service/log');
-const { Joi, objectIdArray, validateBody } = require('../lib/validate');
+const { Joi, objectIdArray, validateBody, requireParamObjectId } = require('../lib/validate');
 
 class RoleController {
   async list(ctx) {
@@ -17,7 +17,9 @@ class RoleController {
   }
 
   async detail(ctx) {
-    const role = await roleService.getById(ctx.params.id);
+    const id = requireParamObjectId(ctx, 'id', '角色 id 不能为空或不合法');
+    if (!id) return;
+    const role = await roleService.getById(id);
     if (!role) {
       ctx.status = 404;
       ctx.body = { message: 'Not found' };
@@ -64,6 +66,8 @@ class RoleController {
   }
 
   async update(ctx) {
+    const id = requireParamObjectId(ctx, 'id', '角色 id 不能为空或不合法');
+    if (!id) return;
     const schema = Joi.object({
       name: Joi.string().trim().min(1).max(64).messages({
         'string.empty': '名称不能为空',
@@ -87,7 +91,7 @@ class RoleController {
     const value = validateBody(ctx, schema);
     if (!value) return;
 
-    const role = await roleService.update(ctx.params.id, value);
+    const role = await roleService.update(id, value);
     if (!role) {
       ctx.status = 404;
       ctx.body = { message: 'Not found' };
@@ -105,7 +109,8 @@ class RoleController {
   }
 
   async delete(ctx) {
-    const id = ctx.params.id;
+    const id = requireParamObjectId(ctx, 'id', '角色 id 不能为空或不合法');
+    if (!id) return;
     const before = await roleService.getById(id);
     const ok = await roleService.delete(id);
     if (!ok) {

@@ -1,6 +1,6 @@
 const menuService = require('../service/menu');
 const logService = require('../service/log');
-const { Joi, objectIdAllowEmpty, validateBody } = require('../lib/validate');
+const { Joi, objectIdAllowEmpty, validateBody, requireParamObjectId } = require('../lib/validate');
 
 class MenuController {
   async list(ctx) {
@@ -30,7 +30,9 @@ class MenuController {
   }
 
   async detail(ctx) {
-    const menu = await menuService.getById(ctx.params.id);
+    const id = requireParamObjectId(ctx, 'id', '菜单 id 不能为空或不合法');
+    if (!id) return;
+    const menu = await menuService.getById(id);
     if (!menu) {
       ctx.status = 404;
       ctx.body = { message: 'Not found' };
@@ -73,6 +75,8 @@ class MenuController {
   }
 
   async update(ctx) {
+    const id = requireParamObjectId(ctx, 'id', '菜单 id 不能为空或不合法');
+    if (!id) return;
     const schema = Joi.object({
       title: Joi.string().trim().min(1).max(64).messages({
         'string.empty': '标题不能为空',
@@ -93,7 +97,7 @@ class MenuController {
     const value = validateBody(ctx, schema);
     if (!value) return;
 
-    const menu = await menuService.update(ctx.params.id, value);
+    const menu = await menuService.update(id, value);
     if (!menu) {
       ctx.status = 404;
       ctx.body = { message: 'Not found' };
@@ -111,7 +115,8 @@ class MenuController {
   }
 
   async delete(ctx) {
-    const id = ctx.params.id;
+    const id = requireParamObjectId(ctx, 'id', '菜单 id 不能为空或不合法');
+    if (!id) return;
     const before = await menuService.getById(id);
     const ok = await menuService.delete(id);
     if (!ok) {

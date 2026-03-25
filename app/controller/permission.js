@@ -1,6 +1,6 @@
 const permissionService = require('../service/permission');
 const logService = require('../service/log');
-const { Joi, objectIdAllowEmpty, objectIdArray, validateBody } = require('../lib/validate');
+const { Joi, objectIdAllowEmpty, objectIdArray, validateBody, requireParamObjectId } = require('../lib/validate');
 
 class PermissionController {
   async list(ctx) {
@@ -18,7 +18,9 @@ class PermissionController {
   }
 
   async detail(ctx) {
-    const perm = await permissionService.getById(ctx.params.id);
+    const id = requireParamObjectId(ctx, 'id', '权限 id 不能为空或不合法');
+    if (!id) return;
+    const perm = await permissionService.getById(id);
     if (!perm) {
       ctx.status = 404;
       ctx.body = { message: 'Not found' };
@@ -69,6 +71,8 @@ class PermissionController {
   }
 
   async update(ctx) {
+    const id = requireParamObjectId(ctx, 'id', '权限 id 不能为空或不合法');
+    if (!id) return;
     const schema = Joi.object({
       name: Joi.string().trim().min(1).max(64).messages({
         'string.empty': '名称不能为空',
@@ -96,7 +100,7 @@ class PermissionController {
     const value = validateBody(ctx, schema);
     if (!value) return;
 
-    const perm = await permissionService.update(ctx.params.id, value);
+    const perm = await permissionService.update(id, value);
     if (!perm) {
       ctx.status = 404;
       ctx.body = { message: 'Not found' };
@@ -114,7 +118,8 @@ class PermissionController {
   }
 
   async delete(ctx) {
-    const id = ctx.params.id;
+    const id = requireParamObjectId(ctx, 'id', '权限 id 不能为空或不合法');
+    if (!id) return;
     const before = await permissionService.getById(id);
     const ok = await permissionService.delete(id);
     if (!ok) {

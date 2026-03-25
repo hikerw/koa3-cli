@@ -34,10 +34,22 @@ function validateBody(ctx, schema, opts = {}) {
   return null;
 }
 
+function requireParamObjectId(ctx, key = 'id', message = 'id 不能为空或不合法') {
+  const raw = ctx?.params?.[key];
+  const s = raw != null ? String(raw).trim() : '';
+  if (!s || !mongoose.isValidObjectId(s)) {
+    ctx.status = 400;
+    ctx.body = { message };
+    return null;
+  }
+  return s;
+}
+
 module.exports = {
   Joi,
   objectIdAllowEmpty,
   objectIdArray,
-  validateBody
+  validateBody,
+  requireParamObjectId
 };
 

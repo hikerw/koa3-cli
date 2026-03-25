@@ -1,8 +1,8 @@
 const systemUserService = require('../service/systemUser');
 const logService = require('../service/log');
-const { Joi, objectIdArray, validateBody } = require('../lib/validate');
-
+const { Joi, objectIdArray, validateBody, requireParamObjectId } = require('../lib/validate');
 class SystemUserController {
+
   async list(ctx) {
     const page = Math.max(1, parseInt(ctx.query.page, 10) || 1);
     const pageSize = Math.min(100, Math.max(1, parseInt(ctx.query.pageSize, 10) || 10));
@@ -12,7 +12,9 @@ class SystemUserController {
   }
 
   async detail(ctx) {
-    const user = await systemUserService.getById(ctx.params.id);
+    const id = requireParamObjectId(ctx, 'id', '用户 id 不能为空或不合法');
+    if (!id) return;
+    const user = await systemUserService.getById(id);
     if (!user) {
       ctx.status = 404;
       ctx.body = { message: 'Not found' };
@@ -58,6 +60,8 @@ class SystemUserController {
   }
 
   async update(ctx) {
+    const id = requireParamObjectId(ctx, 'id', '用户 id 不能为空或不合法');
+    if (!id) return;
     const schema = Joi.object({
       username: Joi.string().trim().min(1).max(32).messages({
         'string.empty': '用户名不能为空',
@@ -73,13 +77,13 @@ class SystemUserController {
         'array.base': 'roleIds 必须是数组'
       })
     })
-      .min(1)
-      .unknown(false);
+      .min(1) // 至少有一个字段
+      .unknown(false) // 忽略未知字段
 
     const value = validateBody(ctx, schema);
     if (!value) return;
 
-    const user = await systemUserService.update(ctx.params.id, value);
+    const user = await systemUserService.update(id, value);
     if (!user) {
       ctx.status = 404;
       ctx.body = { message: 'Not found' };
@@ -97,7 +101,8 @@ class SystemUserController {
   }
 
   async delete(ctx) {
-    const id = ctx.params.id;
+    const id = requireParamObjectId(ctx, 'id', '用户 id 不能为空或不合法');
+    if (!id) return;
     const before = await systemUserService.getById(id);
     const ok = await systemUserService.delete(id);
     if (!ok) {
