@@ -255,6 +255,13 @@ const quickGroupSaving = ref(false);
 const filePreviewVisible = ref(false);
 const previewRow = ref(null);
 
+// 前端上传大小限制（与后端 config.default upload.maxFileSize 保持一致：默认 200MB）
+const MAX_UPLOAD_SIZE = 200 * 1024 * 1024;
+function isFileTooLarge(file) {
+  const size = Number(file?.size);
+  return Number.isFinite(size) && size > MAX_UPLOAD_SIZE;
+}
+
 const typeLabelMap = {
   image: '图片',
   video: '视频',
@@ -451,6 +458,11 @@ function onDialogClosed() {
 
 function onFileChange(uploadFile) {
   const raw = uploadFile?.raw || null;
+  if (raw && isFileTooLarge(raw)) {
+    ElMessage.error('文件超出大小限制');
+    clearUpload();
+    return;
+  }
   pendingFile.value = raw;
   if (raw) form.name = raw.name ? String(raw.name) : '';
 }
@@ -484,6 +496,10 @@ function openEdit(row) {
 async function handleSubmit() {
   if (!form.id && !pendingFile.value) {
     ElMessage.warning('请选择要上传的文件');
+    return;
+  }
+  if (pendingFile.value && isFileTooLarge(pendingFile.value)) {
+    ElMessage.error('文件超出大小限制');
     return;
   }
   const gid = form.groupId || null;
@@ -561,6 +577,10 @@ async function onMultiChange(ev) {
   submitLoading.value = true;
   try {
     for (const file of files) {
+      if (isFileTooLarge(file)) {
+        ElMessage.error(`文件超出大小限制：${file.name || '未命名文件'}`);
+        continue;
+      }
       const md5 = await md5File(file);
       try {
         await instantMaterial({

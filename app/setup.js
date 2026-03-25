@@ -7,6 +7,7 @@ const fs = require('fs');
 const bodyParser = require('koa-bodyparser');
 const serveStatic = require('koa-static');
 const views = require('@ladjs/koa-views');
+const cors = require('@koa/cors');
 
 const createRequestLogger = require('./middleware/requestLogger');
 const createErrorHandler = require('./middleware/errorHandler');
@@ -25,6 +26,18 @@ function maskMongoUri(uri) {
 }
 
 async function setup(app, config, logger) {
+  // CORS：解除跨域限制（允许携带 Authorization 头）
+  // 注意：若需要携带 Cookie，需将 origin 改为具体域名且 credentials=true
+  app.use(
+    cors({
+      origin: '*',
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+      allowHeaders: ['Content-Type', 'Authorization'],
+      exposeHeaders: ['Content-Length', 'Content-Type'],
+      maxAge: 86400
+    })
+  );
+
   // 静态资源
   if (config.static && config.static.enable !== false) {
     const staticPath = path.join(rootDir, config.static.dir || 'public');
