@@ -82,7 +82,7 @@ async function loadData() {
     tableData.value = res?.list ?? [];
     pagination.total = res?.total ?? 0;
   } catch (err) {
-    ElMessage.error(err.message || '加载失败');
+    ElMessage.error(err.message);
   } finally {
     loading.value = false;
   }
@@ -119,7 +119,8 @@ function openEdit(row) {
 
 async function handleSubmit() {
   if (!formRef.value) return;
-  await formRef.value.validate().catch(() => {});
+  const ok = await formRef.value.validate().catch(() => false);
+  if (!ok) return;
   submitLoading.value = true;
   try {
     const payload = {
@@ -138,7 +139,7 @@ async function handleSubmit() {
     dialogVisible.value = false;
     loadData();
   } catch (err) {
-    ElMessage.error(err.message || '提交失败');
+    ElMessage.error(err.message);
   } finally {
     submitLoading.value = false;
   }
@@ -150,7 +151,7 @@ async function handleDelete(row) {
     ElMessage.success('删除成功');
     loadData();
   } catch (err) {
-    ElMessage.error(err.message || '删除失败');
+    ElMessage.error(err.message);
   }
 }
 

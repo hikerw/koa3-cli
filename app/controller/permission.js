@@ -1,5 +1,6 @@
 const permissionService = require('../service/permission');
 const logService = require('../service/log');
+const { Joi, objectIdAllowEmpty, objectIdArray, validateBody } = require('../lib/validate');
 
 class PermissionController {
   async list(ctx) {
@@ -27,7 +28,34 @@ class PermissionController {
   }
 
   async create(ctx) {
-    const perm = await permissionService.create(ctx.request.body || {});
+    const schema = Joi.object({
+      name: Joi.string().trim().min(1).max(64).required().messages({
+        'any.required': '名称不能为空',
+        'string.empty': '名称不能为空',
+        'string.min': '名称不能为空',
+        'string.max': '名称过长'
+      }),
+      code: Joi.string().trim().min(1).max(128).required().messages({
+        'any.required': '编码不能为空',
+        'string.empty': '编码不能为空',
+        'string.min': '编码不能为空',
+        'string.max': '编码过长'
+      }),
+      type: Joi.string().valid('menu', 'button', 'api').default('api'),
+      parentId: Joi.any().custom(objectIdAllowEmpty).default(null).messages({
+        'any.invalid': 'parentId 非法'
+      }),
+      description: Joi.string().allow('').trim().max(512).default(''),
+      menuIds: Joi.any().custom(objectIdArray).default([]).messages({
+        'any.invalid': 'menuIds 包含非法 id',
+        'array.base': 'menuIds 必须是数组'
+      })
+    }).unknown(false);
+
+    const value = validateBody(ctx, schema);
+    if (!value) return;
+
+    const perm = await permissionService.create(value);
     await logService.create(ctx, {
       action: 'create',
       module: 'permission',
@@ -41,7 +69,34 @@ class PermissionController {
   }
 
   async update(ctx) {
-    const perm = await permissionService.update(ctx.params.id, ctx.request.body || {});
+    const schema = Joi.object({
+      name: Joi.string().trim().min(1).max(64).messages({
+        'string.empty': '名称不能为空',
+        'string.min': '名称不能为空',
+        'string.max': '名称过长'
+      }),
+      code: Joi.string().trim().min(1).max(128).messages({
+        'string.empty': '编码不能为空',
+        'string.min': '编码不能为空',
+        'string.max': '编码过长'
+      }),
+      type: Joi.string().valid('menu', 'button', 'api'),
+      parentId: Joi.any().custom(objectIdAllowEmpty).messages({
+        'any.invalid': 'parentId 非法'
+      }),
+      description: Joi.string().allow('').trim().max(512),
+      menuIds: Joi.any().custom(objectIdArray).messages({
+        'any.invalid': 'menuIds 包含非法 id',
+        'array.base': 'menuIds 必须是数组'
+      })
+    })
+      .min(1)
+      .unknown(false);
+
+    const value = validateBody(ctx, schema);
+    if (!value) return;
+
+    const perm = await permissionService.update(ctx.params.id, value);
     if (!perm) {
       ctx.status = 404;
       ctx.body = { message: 'Not found' };

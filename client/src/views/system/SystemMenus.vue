@@ -109,7 +109,25 @@ const pagination = reactive({ page: 1, pageSize: 50, total: 0 });
 const tableData = ref([]);
 const parentOptions = ref([]);
 const form = reactive({ id: null, title: '', path: '', icon: '', parentId: '', order: 0, permissionCode: '' });
-const rules = [{ required: true, message: '请输入标题', trigger: 'blur' }];
+const rules = {
+  title: [
+    { required: true, message: '请输入标题', trigger: 'blur' },
+    { min: 1, max: 64, message: '标题长度应为 1-64', trigger: 'blur' }
+  ],
+  path: [{ max: 256, message: '路径过长', trigger: 'blur' }],
+  icon: [{ max: 128, message: '图标值过长', trigger: 'change' }],
+  permissionCode: [{ max: 128, message: '权限编码过长', trigger: 'blur' }],
+  order: [
+    {
+      validator: (_rule, value, cb) => {
+        if (value == null || value === '') return cb();
+        if (!Number.isInteger(Number(value)) || Number(value) < 0) return cb(new Error('排序必须是非负整数'));
+        cb();
+      },
+      trigger: 'change'
+    }
+  ]
+};
 
 async function loadData() {
   loading.value = true;
@@ -160,7 +178,8 @@ function openEdit(row) {
 
 async function handleSubmit() {
   if (!formRef.value) return;
-  await formRef.value.validate().catch(() => {});
+  const ok = await formRef.value.validate().catch(() => false);
+  if (!ok) return;
   submitLoading.value = true;
   try {
     const payload = { title: form.title, path: form.path, icon: form.icon, parentId: form.parentId || null, order: form.order, permissionCode: form.permissionCode };

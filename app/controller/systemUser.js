@@ -1,5 +1,6 @@
 const systemUserService = require('../service/systemUser');
 const logService = require('../service/log');
+const { Joi, objectIdArray, validateBody } = require('../lib/validate');
 
 class SystemUserController {
   async list(ctx) {
@@ -21,26 +22,64 @@ class SystemUserController {
   }
 
   async create(ctx) {
-    const body = ctx.request.body || {};
-    const { username, password, roleIds } = body;
-    if (!username || !password) {
-      ctx.throw(400, '用户名和密码不能为空');
-    }
-    const user = await systemUserService.create({ username, password, roleIds: roleIds || [] });
+    const schema = Joi.object({
+      username: Joi.string().trim().min(1).max(32).required().messages({
+        'any.required': '用户名不能为空',
+        'string.empty': '用户名不能为空',
+        'string.min': '用户名不能为空',
+        'string.max': '用户名过长'
+      }),
+      password: Joi.string().min(6).max(128).required().messages({
+        'any.required': '密码不能为空',
+        'string.empty': '密码不能为空',
+        'string.min': '密码长度不能小于 6',
+        'string.max': '密码过长'
+      }),
+      roleIds: Joi.any().custom(objectIdArray).default([]).messages({
+        'any.invalid': 'roleIds 包含非法 id',
+        'array.base': 'roleIds 必须是数组'
+      })
+    }).unknown(false);
+
+    const value = validateBody(ctx, schema);
+    if (!value) return;
+
+    const user = await systemUserService.create(value);
     await logService.create(ctx, {
       action: 'create',
       module: 'system_user',
       operatorId: ctx.state.user?.id,
       operatorName: ctx.state.user?.username,
       targetId: user?.id,
-      detail: `新增用户: ${username}`
+      detail: `新增用户: ${value.username}`
     });
     ctx.status = 201;
     ctx.body = user;
   }
 
   async update(ctx) {
-    const user = await systemUserService.update(ctx.params.id, ctx.request.body || {});
+    const schema = Joi.object({
+      username: Joi.string().trim().min(1).max(32).messages({
+        'string.empty': '用户名不能为空',
+        'string.min': '用户名不能为空',
+        'string.max': '用户名过长'
+      }),
+      password: Joi.string().allow('').min(6).max(128).messages({
+        'string.min': '密码长度不能小于 6',
+        'string.max': '密码过长'
+      }),
+      roleIds: Joi.any().custom(objectIdArray).messages({
+        'any.invalid': 'roleIds 包含非法 id',
+        'array.base': 'roleIds 必须是数组'
+      })
+    })
+      .min(1)
+      .unknown(false);
+
+    const value = validateBody(ctx, schema);
+    if (!value) return;
+
+    const user = await systemUserService.update(ctx.params.id, value);
     if (!user) {
       ctx.status = 404;
       ctx.body = { message: 'Not found' };

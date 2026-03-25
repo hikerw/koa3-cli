@@ -1,5 +1,6 @@
 const roleService = require('../service/role');
 const logService = require('../service/log');
+const { Joi, objectIdArray, validateBody } = require('../lib/validate');
 
 class RoleController {
   async list(ctx) {
@@ -26,8 +27,30 @@ class RoleController {
   }
 
   async create(ctx) {
-    const body = ctx.request.body || {};
-    const role = await roleService.create(body);
+    const schema = Joi.object({
+      name: Joi.string().trim().min(1).max(64).required().messages({
+        'any.required': '名称不能为空',
+        'string.empty': '名称不能为空',
+        'string.min': '名称不能为空',
+        'string.max': '名称过长'
+      }),
+      code: Joi.string().trim().min(1).max(64).required().messages({
+        'any.required': '编码不能为空',
+        'string.empty': '编码不能为空',
+        'string.min': '编码不能为空',
+        'string.max': '编码过长'
+      }),
+      permissionIds: Joi.any().custom(objectIdArray).default([]).messages({
+        'any.invalid': 'permissionIds 包含非法 id',
+        'array.base': 'permissionIds 必须是数组'
+      }),
+      description: Joi.string().allow('').trim().max(512).default('')
+    }).unknown(false);
+
+    const value = validateBody(ctx, schema);
+    if (!value) return;
+
+    const role = await roleService.create(value);
     await logService.create(ctx, {
       action: 'create',
       module: 'role',
@@ -41,7 +64,30 @@ class RoleController {
   }
 
   async update(ctx) {
-    const role = await roleService.update(ctx.params.id, ctx.request.body || {});
+    const schema = Joi.object({
+      name: Joi.string().trim().min(1).max(64).messages({
+        'string.empty': '名称不能为空',
+        'string.min': '名称不能为空',
+        'string.max': '名称过长'
+      }),
+      code: Joi.string().trim().min(1).max(64).messages({
+        'string.empty': '编码不能为空',
+        'string.min': '编码不能为空',
+        'string.max': '编码过长'
+      }),
+      permissionIds: Joi.any().custom(objectIdArray).messages({
+        'any.invalid': 'permissionIds 包含非法 id',
+        'array.base': 'permissionIds 必须是数组'
+      }),
+      description: Joi.string().allow('').trim().max(512)
+    })
+      .min(1)
+      .unknown(false);
+
+    const value = validateBody(ctx, schema);
+    if (!value) return;
+
+    const role = await roleService.update(ctx.params.id, value);
     if (!role) {
       ctx.status = 404;
       ctx.body = { message: 'Not found' };

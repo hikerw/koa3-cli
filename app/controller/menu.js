@@ -1,5 +1,6 @@
 const menuService = require('../service/menu');
 const logService = require('../service/log');
+const { Joi, objectIdAllowEmpty, validateBody } = require('../lib/validate');
 
 class MenuController {
   async list(ctx) {
@@ -39,7 +40,26 @@ class MenuController {
   }
 
   async create(ctx) {
-    const menu = await menuService.create(ctx.request.body || {});
+    const schema = Joi.object({
+      title: Joi.string().trim().min(1).max(64).required().messages({
+        'any.required': '标题不能为空',
+        'string.empty': '标题不能为空',
+        'string.min': '标题不能为空',
+        'string.max': '标题过长'
+      }),
+      path: Joi.string().allow('').trim().max(256).default(''),
+      icon: Joi.string().allow('').trim().max(128).default(''),
+      parentId: Joi.any().custom(objectIdAllowEmpty).default(null).messages({
+        'any.invalid': 'parentId 非法'
+      }),
+      order: Joi.number().integer().min(0).max(999999).default(0),
+      permissionCode: Joi.string().allow('').trim().max(128).default('')
+    }).unknown(false);
+
+    const value = validateBody(ctx, schema);
+    if (!value) return;
+
+    const menu = await menuService.create(value);
     await logService.create(ctx, {
       action: 'create',
       module: 'menu',
@@ -53,7 +73,27 @@ class MenuController {
   }
 
   async update(ctx) {
-    const menu = await menuService.update(ctx.params.id, ctx.request.body || {});
+    const schema = Joi.object({
+      title: Joi.string().trim().min(1).max(64).messages({
+        'string.empty': '标题不能为空',
+        'string.min': '标题不能为空',
+        'string.max': '标题过长'
+      }),
+      path: Joi.string().allow('').trim().max(256),
+      icon: Joi.string().allow('').trim().max(128),
+      parentId: Joi.any().custom(objectIdAllowEmpty).messages({
+        'any.invalid': 'parentId 非法'
+      }),
+      order: Joi.number().integer().min(0).max(999999),
+      permissionCode: Joi.string().allow('').trim().max(128)
+    })
+      .min(1)
+      .unknown(false);
+
+    const value = validateBody(ctx, schema);
+    if (!value) return;
+
+    const menu = await menuService.update(ctx.params.id, value);
     if (!menu) {
       ctx.status = 404;
       ctx.body = { message: 'Not found' };
