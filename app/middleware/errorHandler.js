@@ -11,8 +11,7 @@ module.exports = function createErrorHandler(config, logger) {
       ctx.body = {
         success: false,
         message: firstDetailMessage || err.message || 'Internal Server Error',
-        ...(err.details && { errors: err.details }),
-        ...(config.env === 'development' && { stack: err.stack })
+        ...(err.details && { errors: err.details })
       };
 
       logger.error('Request failed', {
