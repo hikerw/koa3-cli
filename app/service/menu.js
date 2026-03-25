@@ -183,6 +183,30 @@ class MenuService {
     }
     console.log('[Menu] 已添加「操作日志」菜单');
   }
+
+  /**
+   * 若没有「素材管理」菜单则创建，并增加权限 material:access（兼容已有数据库）
+   */
+  async ensureMaterialsMenu() {
+    const exists = await Menu.findOne({ path: '/materials' });
+    if (exists) return;
+    const materialMenu = await Menu.create({
+      title: '素材管理',
+      path: '/materials',
+      icon: 'Picture',
+      order: 2
+    });
+    const Permission = require('../model/permission');
+    if (!(await Permission.findOne({ code: 'material:access' }))) {
+      await Permission.create({
+        name: '素材管理',
+        code: 'material:access',
+        type: 'menu',
+        menuIds: [materialMenu._id]
+      });
+    }
+    console.log('[Menu] 已添加「素材管理」菜单与权限 material:access');
+  }
 }
 
 module.exports = new MenuService();

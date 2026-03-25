@@ -5,14 +5,14 @@ const { mongoose } = require('./db');
 
 const LogSchema = new mongoose.Schema(
   {
-    action: { type: String, required: true }, // login_success, login_fail, create, update, delete
-    module: { type: String, required: true }, // auth, system_user, role, permission, menu
-    operatorId: { type: String, default: null },
-    operatorName: { type: String, default: '' },
-    targetId: { type: String, default: null },
-    detail: { type: String, default: '' },
-    ip: { type: String, default: '' },
-    userAgent: { type: String, default: '' }
+    action: { type: String, required: true, comment: '动作类型，如 login_success、create、update、delete' },
+    module: { type: String, required: true, comment: '业务模块，如 auth、system_user、role、menu' },
+    operatorId: { type: String, default: null, comment: '操作者 ID（未登录可能为空）' },
+    operatorName: { type: String, default: '', comment: '操作者名称' },
+    targetId: { type: String, default: null, comment: '操作目标 ID（可选）' },
+    detail: { type: String, default: '', comment: '操作详情描述' },
+    ip: { type: String, default: '', comment: '请求来源 IP' },
+    userAgent: { type: String, default: '', comment: '客户端 User-Agent' }
   },
   { timestamps: true }
 );

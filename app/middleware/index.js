@@ -20,7 +20,7 @@ module.exports = async (ctx, next) => {
       ctx.body = {
         success: true,
         data: ctx.body ?? null,
-        message: ''
+        message: undefined
       };
     }
   }

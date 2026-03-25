@@ -24,6 +24,13 @@ module.exports = {
     }
   },
 
+  // 素材上传（目录相对项目根目录，URL 需与 static 下路径一致）
+  upload: {
+    dir: 'public/uploads/materials', // 上传目录相对项目根目录
+    publicPath: '/uploads/materials', // 公共访问路径
+    maxFileSize: Number(process.env.UPLOAD_MAX_FILE_SIZE) || 200 * 1024 * 1024 // 200MB
+  },
+
   // Docs build config
   docs: {
     enable: true,

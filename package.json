@@ -27,16 +27,17 @@
   "dependencies": {
     "@koa/router": "^15.3.1",
     "@ladjs/koa-views": "^9.0.0",
+    "bcryptjs": "^2.4.3",
     "dotenv": "^17.3.1",
     "ejs": "^4.0.1",
+    "formidable": "^3.5.2",
     "joi": "^17.13.3",
+    "jsonwebtoken": "^9.0.2",
     "koa": "^3.1.2",
     "koa-bodyparser": "^4.4.1",
     "koa-cors": "^0.0.16",
     "koa-static": "^5.0.0",
-    "mongoose": "^8.6.3",
-    "bcryptjs": "^2.4.3",
-    "jsonwebtoken": "^9.0.2"
+    "mongoose": "^8.6.3"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

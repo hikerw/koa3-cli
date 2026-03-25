@@ -9,6 +9,8 @@
           <el-option label="角色" value="role" />
           <el-option label="权限" value="permission" />
           <el-option label="菜单" value="menu" />
+          <el-option label="素材" value="material" />
+          <el-option label="素材分组" value="material_group" />
         </el-select>
         <el-select v-model="filters.action" placeholder="操作" clearable style="width: 120px">
           <el-option label="全部" value="" />
@@ -80,7 +82,9 @@ const moduleLabels = {
   system_user: '用户',
   role: '角色',
   permission: '权限',
-  menu: '菜单'
+  menu: '菜单',
+  material: '素材',
+  material_group: '素材分组'
 };
 const actionLabels = {
   login_success: '登录成功',

@@ -44,11 +44,15 @@
           </template>
         </template>
         <template v-else>
-          <el-menu-item index="/">
-            <el-icon><UserFilled /></el-icon>
-            <span>首页</span>
-          </el-menu-item>
-          <el-sub-menu v-if="isSuperAdmin" index="system">
+            <el-menu-item index="/">
+              <el-icon><UserFilled /></el-icon>
+              <span>首页</span>
+            </el-menu-item>
+            <el-menu-item index="/materials">
+              <el-icon><Picture /></el-icon>
+              <span>素材管理</span>
+            </el-menu-item>
+            <el-sub-menu v-if="isSuperAdmin" index="system">
             <template #title>
               <el-icon><Setting /></el-icon>
               <span>系统设置</span>
@@ -103,7 +107,7 @@
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import * as Icons from '@element-plus/icons-vue';
-import { UserFilled, Setting, Document, Sunny, Moon, Fold, Expand, User, Key, Lock, Menu } from '@element-plus/icons-vue';
+import { UserFilled, Setting, Document, Sunny, Moon, Fold, Expand, User, Key, Lock, Menu, Picture } from '@element-plus/icons-vue';
 import { fetchCurrentUserMenus } from '../api/system/menus';
 import { useTheme } from '../composables/useTheme';
 import { appTitle, appTitleShort } from '../config/app';

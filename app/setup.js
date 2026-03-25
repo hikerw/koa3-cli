@@ -15,6 +15,7 @@ const authMiddleware = require('./middleware/auth');
 const middleware = require('./middleware');
 const router = require('./router');
 const { connectMongo } = require('./model/db');
+const menuService = require('./service/menu');
 
 const rootDir = path.join(__dirname, '..');
 
@@ -70,6 +71,14 @@ async function setup(app, config, logger) {
       stack: error.stack
     });
     process.exit(1);
+  }
+
+  try {
+    await menuService.ensureDefaultMenus();
+    await menuService.ensureLogsMenu();
+    await menuService.ensureMaterialsMenu();
+  } catch (e) {
+    logger.warn('Menu seed skipped', { message: e.message });
   }
 
   // HTTP 监听
