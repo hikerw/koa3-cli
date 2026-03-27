@@ -61,7 +61,7 @@ class MaterialGroupController {
       targetId: id,
       detail: before ? `删除素材分组: ${before.name}` : `删除素材分组 id: ${id}`
     });
-    ctx.body = { message: '删除成功',success: true };
+    ctx.body = { message: '删除成功' };
   }
 }
 

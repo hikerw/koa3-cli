@@ -72,7 +72,7 @@ class MaterialController {
         );
         if (!row) {
           ctx.status = 404;
-          ctx.body = { message: 'Not found',success: false };
+          ctx.body = { message: 'Not found' };
           return;
         }
         await logService.create(ctx, {
@@ -204,7 +204,7 @@ class MaterialController {
       const message =
         e.httpCode === 413 || /maxFileSize|greater than|exceeded/i.test(msg) ? '文件超出大小限制' : msg || '上传解析失败';
       ctx.status = 400;
-      ctx.body = { message,success: false };
+      ctx.body = { message };
       return;
     }
 
@@ -212,7 +212,7 @@ class MaterialController {
     const file = Array.isArray(fileArr) ? fileArr[0] : fileArr;
     if (!file || !file.filepath) {
       ctx.status = 400;
-      ctx.body = { message: '请选择要上传的文件',success: false };
+      ctx.body = { message: '请选择要上传的文件' };
       return;
     }
 
@@ -282,12 +282,12 @@ class MaterialController {
     const body = ctx.request.body || {};
     if (!body.name || !String(body.name).trim()) {
       ctx.status = 400;
-      ctx.body = { message: '素材名称不能为空',success: false };
+      ctx.body = { message: '素材名称不能为空' };
       return;
     }
     if (!body.url || !String(body.url).trim()) {
       ctx.status = 400;
-      ctx.body = { message: '请上传文件或使用资源地址创建',success: false };
+      ctx.body = { message: '请上传文件或使用资源地址创建' };
       return;
     }
     const row = await materialService.create(body);
@@ -307,7 +307,7 @@ class MaterialController {
     const row = await materialService.update(ctx.params.id, ctx.request.body || {});
     if (!row) {
       ctx.status = 404;
-      ctx.body = { message: 'Not found',success: false };
+      ctx.body = { message: 'Not found' };
       return;
     }
     await logService.create(ctx, {
@@ -328,7 +328,7 @@ class MaterialController {
     const ok = await materialService.delete(id, uploadCfg, rootDir);
     if (!ok) {
       ctx.status = 404;
-      ctx.body = { message: 'Not found',success: false };
+      ctx.body = { message: 'Not found' };
       return;
     }
     await logService.create(ctx, {
@@ -339,7 +339,7 @@ class MaterialController {
       targetId: id,
       detail: before ? `删除素材: ${before.name}` : `删除素材 id: ${id}`
     });
-    ctx.body = { message: '删除成功',success: true };
+    ctx.body = { message: '删除成功' };
   }
 }
 

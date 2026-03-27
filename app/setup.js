@@ -13,7 +13,7 @@ const createRequestLogger = require('./middleware/requestLogger');
 const createErrorHandler = require('./middleware/errorHandler');
 const notFound = require('./middleware/notFound');
 const authMiddleware = require('./middleware/auth');
-const middleware = require('./middleware');
+// const middleware = require('./middleware');
 const router = require('./router');
 const { connectMongo } = require('./model/db');
 const menuService = require('./service/menu');
@@ -57,9 +57,9 @@ async function setup(app, config, logger) {
   app.use(bodyParser(config.bodyParser || {}));
   app.use(createRequestLogger(logger));
 
-  if (middleware && typeof middleware === 'function') {
-    app.use(middleware);
-  }
+  // if (middleware && typeof middleware === 'function') {
+  //   app.use(middleware);
+  // }
 
   // JWT 认证：/api 请求需携带有效 token，白名单路径不校验
   const jwtConfig = config.jwt || {};
