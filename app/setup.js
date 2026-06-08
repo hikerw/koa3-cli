@@ -20,11 +20,42 @@ const menuService = require('./service/menu');
 
 const rootDir = path.join(__dirname, '..');
 
+
 function maskMongoUri(uri) {
   if (!uri || typeof uri !== 'string') return '';
   return uri.replace(/\/\/([^:\/]+):([^@\/]+)@/, '//$1:***@');
 }
+/**
+ * 生成静态资源缓存配置。
+ *
+ * SPA 的入口 index.html 会引用最新一批带 hash 的 JS/CSS 文件，如果入口文件被浏览器或 CDN
+ * 长时间缓存，用户发布后仍会拿到旧入口，进而继续加载旧资源。这里仅禁止 index.html 缓存，
+ * 其他静态资源继续使用配置里的 maxAge，保证发布更新及时生效且不影响资源缓存性能。
+ *
+ * @param {Object} staticOptions koa-static 原始配置项
+ * @returns {Object} 注入 index.html 不缓存策略后的 koa-static 配置项
+ */
+function createStaticOptions(staticOptions = {}) {
+  const userSetHeaders = staticOptions.setHeaders;
 
+  return {
+    ...staticOptions,
+    setHeaders(res, filePath, stats) {
+      if (typeof userSetHeaders === 'function') {
+        userSetHeaders(res, filePath, stats);
+      }
+
+      // koa-send 在启用 gzip/brotli 时传入的是 index.html.gz / index.html.br，
+      // 需要去掉压缩扩展名后再判断，避免预压缩入口文件继续被长缓存。
+      const normalizedFileName = path.basename(filePath).replace(/\.(br|gz)$/i, '');
+      if (normalizedFileName === 'index.html') {
+        res.setHeader('Cache-Control', INDEX_HTML_CACHE_CONTROL);
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
+      }
+    }
+  };
+}
 async function setup(app, config, logger) {
   // CORS：解除跨域限制（允许携带 Authorization 头）
   // 注意：若需要携带 Cookie，需将 origin 改为具体域名且 credentials=true
@@ -42,7 +73,7 @@ async function setup(app, config, logger) {
   if (config.static && config.static.enable !== false) {
     const staticPath = path.join(rootDir, config.static.dir || 'public');
     if (fs.existsSync(staticPath)) {
-      app.use(serveStatic(staticPath, config.static.options || {}));
+      app.use(serveStatic(staticPath, createStaticOptions(config.static.options || {})));
     }
   }
 
