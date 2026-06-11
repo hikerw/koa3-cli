@@ -8,6 +8,7 @@ import SystemPermissions from './views/system/SystemPermissions.vue';
 import SystemMenus from './views/system/SystemMenus.vue';
 import SystemLogs from './views/system/SystemLogs.vue';
 import SystemMaterials from './views/system/SystemMaterials.vue';
+import SystemStorage from './views/system/SystemStorage.vue';
 
 const routes = [
   { path: '/login', name: 'Login', component: Login, meta: { public: true } },
@@ -21,6 +22,7 @@ const routes = [
       { path: 'system/permissions', name: 'SystemPermissions', component: SystemPermissions },
       { path: 'system/menus', name: 'SystemMenus', component: SystemMenus },
       { path: 'system/logs', name: 'SystemLogs', component: SystemLogs },
+      { path: 'system/storage', name: 'SystemStorage', component: SystemStorage },
       { path: 'materials', name: 'Materials', component: SystemMaterials }
     ]
   }

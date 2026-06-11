@@ -108,7 +108,7 @@ class MaterialController {
     } catch (e) {
       if (e.status) {
         ctx.status = e.status;
-        ctx.body = { message: e.message };
+        ctx.body = { message: e.message, usageRefs: e.usageRefs || [] };
         return;
       }
       ctx.throw(500, e.message);
@@ -139,15 +139,15 @@ class MaterialController {
     const body = ctx.request.body || {};
     const ids = Array.isArray(body.ids) ? body.ids : [];
     const uploadCfg = mergedUploadCfg();
-    const n = await materialService.bulkDelete(ids, uploadCfg, rootDir);
+    const result = await materialService.bulkDelete(ids, uploadCfg, rootDir);
     await logService.create(ctx, {
       action: 'delete',
       module: 'material',
       operatorId: ctx.state.user?.id,
       operatorName: ctx.state.user?.username,
-      detail: `批量删除素材 ${n} 条`
+      detail: `批量删除素材 ${result.deleted} 条，拦截使用中素材 ${result.blocked.length} 条`
     });
-    ctx.body = { deleted: n };
+    ctx.body = result;
   }
 
   async bulkGroup(ctx) {
@@ -273,6 +273,11 @@ class MaterialController {
       ctx.status = 201;
       ctx.body = row;
     } catch (e) {
+      if (e.status) {
+        ctx.status = e.status;
+        ctx.body = { message: e.message, usageRefs: e.usageRefs || [] };
+        return;
+      }
       ctx.throw(500, e.message);
     }
   }
@@ -325,21 +330,30 @@ class MaterialController {
     const uploadCfg = mergedUploadCfg();
     const id = ctx.params.id;
     const before = await materialService.getById(id);
-    const ok = await materialService.delete(id, uploadCfg, rootDir);
-    if (!ok) {
-      ctx.status = 404;
-      ctx.body = { message: 'Not found' };
-      return;
+    try {
+      const ok = await materialService.delete(id, uploadCfg, rootDir);
+      if (!ok) {
+        ctx.status = 404;
+        ctx.body = { message: 'Not found' };
+        return;
+      }
+      await logService.create(ctx, {
+        action: 'delete',
+        module: 'material',
+        operatorId: ctx.state.user?.id,
+        operatorName: ctx.state.user?.username,
+        targetId: id,
+        detail: before ? `删除素材: ${before.name}` : `删除素材 id: ${id}`
+      });
+      ctx.body = { message: '删除成功' };
+    } catch (e) {
+      if (e.status) {
+        ctx.status = e.status;
+        ctx.body = { message: e.message, usageRefs: e.usageRefs || [] };
+        return;
+      }
+      ctx.throw(500, e.message);
     }
-    await logService.create(ctx, {
-      action: 'delete',
-      module: 'material',
-      operatorId: ctx.state.user?.id,
-      operatorName: ctx.state.user?.username,
-      targetId: id,
-      detail: before ? `删除素材: ${before.name}` : `删除素材 id: ${id}`
-    });
-    ctx.body = { message: '删除成功' };
   }
 }
 

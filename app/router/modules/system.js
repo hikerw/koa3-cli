@@ -4,6 +4,7 @@ module.exports = function registerSystemRoutes(router) {
   const permissionController = require('../../controller/permission');
   const menuController = require('../../controller/menu');
   const logController = require('../../controller/log');
+  const systemSettingController = require('../../controller/systemSetting');
 
   // 系统设置 - 用户管理（后台账号）
   router.get('/api/system/users', systemUserController.list);
@@ -39,5 +40,9 @@ module.exports = function registerSystemRoutes(router) {
 
   // 系统设置 - 操作日志（仅超级管理员）
   router.get('/api/system/logs', logController.list);
+
+  // 系统设置 - 文件存储配置（本地 / 七牛云）
+  router.get('/api/system/storage', systemSettingController.getStorage);
+  router.put('/api/system/storage', systemSettingController.saveStorage);
 };
 

@@ -9,7 +9,10 @@
   "preferGlobal": true,
   "scripts": {
     "start": "node app.js",
-    "dev": "nodemon app.js",
+    "dev": "concurrently -n server,client -c blue,green \"npm run dev:server\" \"npm run dev:adminclient\"",
+    "dev:server": "nodemon app.js",
+    "dev:adminclient": "npm --prefix client run dev",
+    "package:release": "powershell -ExecutionPolicy Bypass -File scripts/package-release.ps1",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [
@@ -37,9 +40,11 @@
     "@koa/cors": "^5.0.0",
     "koa-bodyparser": "^4.4.1",
     "koa-static": "^5.0.0",
-    "mongoose": "^8.6.3"
+    "mongoose": "^8.6.3",
+    "qiniu": "^7.15.2"
   },
   "devDependencies": {
+    "concurrently": "^9.2.1",
     "nodemon": "^3.1.14"
   },
   "volta": {

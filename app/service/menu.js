@@ -142,6 +142,7 @@ class MenuService {
     const c2 = await Menu.create({ title: '角色管理', path: '/system/roles', icon: 'Key', order: 2, parentId: systemParent._id });
     const c3 = await Menu.create({ title: '权限管理', path: '/system/permissions', icon: 'Lock', order: 3, parentId: systemParent._id });
     const c4 = await Menu.create({ title: '菜单管理', path: '/system/menus', icon: 'Menu', order: 4, parentId: systemParent._id });
+    const c5 = await Menu.create({ title: '存储配置', path: '/system/storage', icon: 'Setting', order: 6, parentId: systemParent._id });
 
     if (!(await Permission.findOne({ code: 'home:access' }))) {
       await Permission.create({ name: '首页', code: 'home:access', type: 'menu', menuIds: [home._id] });
@@ -151,7 +152,7 @@ class MenuService {
         name: '系统设置',
         code: 'system:access',
         type: 'menu',
-        menuIds: [systemParent._id, c1._id, c2._id, c3._id, c4._id]
+        menuIds: [systemParent._id, c1._id, c2._id, c3._id, c4._id, c5._id]
       });
     }
     console.log('[Menu] 默认菜单已初始化：首页、系统设置及子菜单；已创建权限「首页」「系统设置」（可赋给角色以控制菜单可见）');
@@ -182,6 +183,33 @@ class MenuService {
       }
     }
     console.log('[Menu] 已添加「操作日志」菜单');
+  }
+
+  /**
+   * 若没有「存储配置」菜单则创建并加入系统设置权限。
+   * 该页面控制上传文件落本地还是七牛云，必须放到系统设置里，避免普通业务菜单误操作。
+   */
+  async ensureStorageMenu() {
+    const exists = await Menu.findOne({ path: '/system/storage' });
+    if (exists) return;
+    const systemParent = await Menu.findOne({ path: '/system', parentId: null });
+    if (!systemParent) return;
+    const storageMenu = await Menu.create({
+      title: '存储配置',
+      path: '/system/storage',
+      icon: 'Setting',
+      order: 6,
+      parentId: systemParent._id
+    });
+    const perm = await Permission.findOne({ code: 'system:access' });
+    if (perm) {
+      perm.menuIds = perm.menuIds || [];
+      if (!perm.menuIds.some((id) => id.toString() === storageMenu._id.toString())) {
+        perm.menuIds.push(storageMenu._id);
+        await perm.save();
+      }
+    }
+    console.log('[Menu] 已添加「存储配置」菜单');
   }
 
   /**

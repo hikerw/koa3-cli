@@ -19,6 +19,7 @@ const { connectMongo } = require('./model/db');
 const menuService = require('./service/menu');
 
 const rootDir = path.join(__dirname, '..');
+const INDEX_HTML_CACHE_CONTROL = 'no-store, no-cache, must-revalidate, proxy-revalidate';
 
 
 function maskMongoUri(uri) {
@@ -120,6 +121,7 @@ async function setup(app, config, logger) {
   try {
     await menuService.ensureDefaultMenus();
     await menuService.ensureLogsMenu();
+    await menuService.ensureStorageMenu();
     await menuService.ensureMaterialsMenu();
   } catch (e) {
     logger.warn('Menu seed skipped', { message: e.message });

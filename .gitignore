@@ -27,6 +27,8 @@ Thumbs.db
 # Build
 dist/
 build/
+release-temp/
+release-dist/
 
 # Coverage
 coverage/

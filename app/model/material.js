@@ -20,6 +20,7 @@ const MaterialSchema = new mongoose.Schema(
     },
     url: { type: String, required: true, trim: true, comment: '素材访问 URL 或相对路径' },
     thumbnail: { type: String, default: '', trim: true, comment: '缩略图 URL（图片通常与 url 相同）' },
+    storageDriver: { type: String, enum: ['local', 'qiniu'], default: 'local', comment: '素材所在存储驱动' },
     mimeType: { type: String, default: '', trim: true, comment: '文件 MIME 类型' },
     size: { type: Number, default: 0, comment: '文件大小（字节）' },
     description: { type: String, default: '', comment: '素材描述（可选）' },

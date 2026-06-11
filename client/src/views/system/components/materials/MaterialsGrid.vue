@@ -59,6 +59,11 @@
             <div v-else class="mat-thumb mat-thumb--file">
               <el-icon :size="32"><Document /></el-icon>
             </div>
+            <el-tooltip v-if="row.inUse" :content="usageTooltip(row)" placement="top" effect="dark">
+              <el-tag class="mat-usage-badge" type="warning" size="small" effect="dark">
+                使用中 {{ row.usageCount || 1 }}
+              </el-tag>
+            </el-tooltip>
           </div>
         </div>
 
@@ -73,7 +78,16 @@
             <button type="button" class="act-link" @click="$emit('edit-item', row)">编辑</button>
             <button type="button" class="act-link" @click="$emit('copy-link', row)">链接</button>
             <button type="button" class="act-link" @click="$emit('quick-group', row)">分组</button>
-            <el-popconfirm title="确定删除该素材？" confirm-button-text="删除" cancel-button-text="取消" @confirm="$emit('delete-item', row)">
+            <el-tooltip v-if="row.inUse" :content="usageTooltip(row)" placement="top" effect="dark">
+              <button type="button" class="act-link act-link--danger is-disabled">删除</button>
+            </el-tooltip>
+            <el-popconfirm
+              v-else
+              title="确定删除该素材？"
+              confirm-button-text="删除"
+              cancel-button-text="取消"
+              @confirm="$emit('delete-item', row)"
+            >
               <template #reference>
                 <button type="button" class="act-link act-link--danger">删除</button>
               </template>
@@ -150,6 +164,18 @@ function openMultiPicker() {
   multiInputRef.value?.click();
 }
 
+function usageTooltip(row) {
+  const refs = Array.isArray(row?.usageRefs) ? row.usageRefs : [];
+  if (!refs.length) return '该素材正在被使用，不能删除';
+  const text = refs
+    .slice(0, 5)
+    .map((item) => `${item.label || '业务引用'}：${item.title || '未命名'}`)
+    .join('；');
+  const total = Number(row.usageCount || refs.length);
+  const more = total > 5 ? `；另有 ${total - 5} 处` : '';
+  return `${text}${more}`;
+}
+
 defineExpose({ openMultiPicker });
 </script>
 
@@ -215,6 +241,7 @@ defineExpose({ openMultiPicker });
 }
 
 .mat-thumb-wrap {
+  position: relative;
   width: 100%;
   aspect-ratio: 1;
   border-radius: 6px;
@@ -241,6 +268,15 @@ defineExpose({ openMultiPicker });
 .mat-thumb {
   width: 100%;
   height: 100%;
+}
+
+.mat-usage-badge {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  z-index: 2;
+  max-width: calc(100% - 16px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
 }
 
 .mat-video-shell {
@@ -392,6 +428,13 @@ defineExpose({ openMultiPicker });
 
 .act-link--danger:hover {
   color: var(--el-color-danger);
+}
+
+.act-link.is-disabled,
+.act-link.is-disabled:hover {
+  color: var(--el-text-color-placeholder);
+  background: none;
+  cursor: not-allowed;
 }
 
 .bulk-footer {

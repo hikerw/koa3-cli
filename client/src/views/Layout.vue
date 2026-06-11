@@ -73,6 +73,10 @@
               <el-icon><Menu /></el-icon>
               <span>菜单管理</span>
             </el-menu-item>
+            <el-menu-item index="/system/storage">
+              <el-icon><Setting /></el-icon>
+              <span>存储配置</span>
+            </el-menu-item>
           </el-sub-menu>
         </template>
       </el-menu>

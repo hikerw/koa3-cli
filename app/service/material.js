@@ -3,15 +3,8 @@ const fs = require('fs/promises');
 const { mongoose } = require('../model/db');
 const Material = require('../model/material');
 const { md5FileHex, normalizeMd5 } = require('../lib/fileMd5');
-const {
-  classifyMaterialType,
-  makeStoredFilename,
-  ensureDir,
-  moveFile,
-  removeStoredFileIfManaged,
-  publicUrlForFile,
-  uploadAbsDir
-} = require('../lib/materialUpload');
+const storageService = require('./storage');
+const { buildMaterialUsageMap, normalizeMaterialUrl } = require('./materialUsage');
 
 function resolveGroupIdForCreate(raw) {
   if (raw == null || raw === '') return null;
@@ -20,7 +13,48 @@ function resolveGroupIdForCreate(raw) {
   return new mongoose.Types.ObjectId(s);
 }
 
+function buildUsageError(doc, usage) {
+  const err = new Error(`素材正在被使用，不能删除或替换：${doc?.name || doc?.url || ''}`);
+  err.status = 409;
+  err.code = 'MATERIAL_IN_USE';
+  err.usageCount = usage?.usageCount || 0;
+  err.usageRefs = usage?.usageRefs || [];
+  return err;
+}
+
 class MaterialService {
+  /**
+   * 给素材记录附加业务引用状态。
+   *
+   * 脚手架默认没有业务引用来源，返回的 inUse 会是 false；业务模块通过 materialUsage 服务注册
+   * 引用来源后，这里会自动把使用位置带给前端，用于提示和危险操作拦截。
+   */
+  async attachUsage(items = []) {
+    const rows = items.map((item) => (typeof item.toJSON === 'function' ? item.toJSON() : item));
+    const usageMap = await buildMaterialUsageMap(rows.map((row) => row.url));
+    return rows.map((row) => {
+      const refs = usageMap.get(normalizeMaterialUrl(row.url)) || [];
+      return {
+        ...row,
+        inUse: refs.length > 0,
+        usageCount: refs.length,
+        usageRefs: refs.slice(0, 20)
+      };
+    });
+  }
+
+  /**
+   * 删除或替换素材文件前的后端兜底保护。
+   *
+   * 一旦素材 URL 已被业务表引用，直接删除或换文件会让页面图片/附件失效，所以必须在服务层
+   * 做最终校验，不能只依赖前端按钮状态。
+   */
+  async assertMaterialNotInUse(doc) {
+    const [usage] = await this.attachUsage([doc]);
+    if (usage?.inUse) throw buildUsageError(doc, usage);
+    return usage;
+  }
+
   /**
    * group: all | none | MongoId
    * typeTab: image | video | other（其它=音频+文档+其它）| 或旧版单值 type
@@ -73,12 +107,14 @@ class MaterialService {
       Material.find(filter).sort({ createdAt: -1 }).skip(skip).limit(safePageSize),
       Material.countDocuments(filter)
     ]);
-    return { list: items.map((d) => d.toJSON()), total };
+    return { list: await this.attachUsage(items), total };
   }
 
   async getById(id) {
     const doc = await Material.findById(id);
-    return doc ? doc.toJSON() : null;
+    if (!doc) return null;
+    const [row] = await this.attachUsage([doc]);
+    return row;
   }
 
   async findFirstByContent(hash, size) {
@@ -98,7 +134,8 @@ class MaterialService {
       type: src.type,
       mimeType: src.mimeType || '',
       size: src.size,
-      thumbnail: src.thumbnail || ''
+      thumbnail: src.thumbnail || '',
+      storageDriver: src.storageDriver || 'local'
     };
   }
 
@@ -127,6 +164,7 @@ class MaterialService {
       mimeType: src.mimeType || '',
       size: src.size,
       thumbnail: src.thumbnail || '',
+      storageDriver: src.storageDriver || 'local',
       description: (description || '').trim(),
       tags: Array.isArray(tags) ? tags : [],
       fileHash: h,
@@ -146,7 +184,9 @@ class MaterialService {
     if (!src || !src.url) return null;
     const doc = await Material.findById(id);
     if (!doc) return null;
+    await this.assertMaterialNotInUse(doc);
     const oldUrl = doc.url;
+    const oldDriver = doc.storageDriver || 'local';
     if (name !== undefined && String(name).trim()) doc.name = String(name).trim();
     if (description !== undefined) doc.description = String(description).trim();
     if (tags !== undefined) {
@@ -157,89 +197,60 @@ class MaterialService {
     doc.mimeType = src.mimeType || '';
     doc.size = src.size;
     doc.thumbnail = src.thumbnail || '';
+    doc.storageDriver = src.storageDriver || 'local';
     doc.fileHash = h;
     await doc.save();
     const leftOld = await Material.countDocuments({ url: oldUrl });
-    if (leftOld === 0 && uploadCfg && rootDir) {
-      await removeStoredFileIfManaged(oldUrl, rootDir, uploadCfg.publicPath, uploadCfg.dir);
+    if (leftOld === 0 && rootDir) {
+      await storageService.removeStoredFile(oldUrl, rootDir, { driver: oldDriver }).catch(() => {});
     }
     return doc.toJSON();
   }
 
-  async persistUploadedFile({ tempPath, originalFilename, mimetype, size }, uploadCfg, rootDir) {
-    const absDir = uploadAbsDir(rootDir, uploadCfg.dir);
-    await ensureDir(absDir);
-    const type = classifyMaterialType(mimetype, originalFilename);
-    const storedName = makeStoredFilename(originalFilename, mimetype);
-    const dest = path.join(absDir, storedName);
-    await moveFile(tempPath, dest);
-    const url = publicUrlForFile(uploadCfg.publicPath, storedName);
-    const sz = Number(size) >= 0 ? Number(size) : 0;
-    return {
-      url,
-      type,
-      mimeType: (mimetype || '').trim(),
-      size: sz,
-      thumbnail: type === 'image' ? url : '',
-      _localPath: dest
-    };
-  }
-
-  async applyDedupeByHash(persisted, destPath) {
-    const fileHash = await md5FileHex(destPath);
-    const dup = await Material.findOne({ fileHash, size: persisted.size }).lean();
-    if (dup && dup.url && dup.url !== persisted.url) {
-      await fs.unlink(destPath).catch(() => {});
-      return {
-        url: dup.url,
-        type: dup.type,
-        mimeType: dup.mimeType || '',
-        size: dup.size,
-        thumbnail: dup.thumbnail || '',
-        fileHash,
-        _ownsBlob: false
-      };
-    }
-    return {
-      url: persisted.url,
-      type: persisted.type,
-      mimeType: persisted.mimeType,
-      size: persisted.size,
-      thumbnail: persisted.thumbnail,
-      fileHash,
-      _ownsBlob: true
-    };
+  async persistUploadedFile(fileMeta, _uploadCfg, rootDir) {
+    return storageService.saveUploadedFile(fileMeta, rootDir);
   }
 
   async createFromUpload({ fileMeta, name, description, tags, groupId }, uploadCfg, rootDir) {
-    let persisted;
-    let destPath;
-    let withHash;
+    let persisted = null;
     try {
-      persisted = await this.persistUploadedFile(fileMeta, uploadCfg, rootDir);
-      destPath = persisted._localPath;
-      delete persisted._localPath;
-
-      withHash = await this.applyDedupeByHash(persisted, destPath);
-      const rest = { ...withHash };
-      delete rest._ownsBlob;
+      const fileHash = await md5FileHex(fileMeta.tempPath);
+      const size = Number(fileMeta.size) >= 0 ? Number(fileMeta.size) : 0;
+      const dup = await Material.findOne({ fileHash, size }).lean();
       const base =
         (name || '').trim() ||
         path.parse(String(fileMeta.originalFilename || '').trim() || 'file').name ||
         '未命名素材';
+      if (dup?.url) {
+        await fs.unlink(fileMeta.tempPath).catch(() => {});
+        return await this.create({
+          name: base,
+          url: dup.url,
+          type: dup.type,
+          mimeType: dup.mimeType || '',
+          size: dup.size,
+          thumbnail: dup.thumbnail || '',
+          storageDriver: dup.storageDriver || 'local',
+          description: (description || '').trim(),
+          tags: Array.isArray(tags) ? tags : [],
+          fileHash,
+          groupId: resolveGroupIdForCreate(groupId)
+        });
+      }
+
+      persisted = await this.persistUploadedFile(fileMeta, uploadCfg, rootDir);
+      delete persisted._localPath;
       return await this.create({
         name: base,
-        ...rest,
+        ...persisted,
         description: (description || '').trim(),
         tags: Array.isArray(tags) ? tags : [],
+        fileHash,
         groupId: resolveGroupIdForCreate(groupId)
       });
     } catch (e) {
-      if (withHash && withHash._ownsBlob && withHash.url) {
-        await removeStoredFileIfManaged(withHash.url, rootDir, uploadCfg.publicPath, uploadCfg.dir).catch(() => {});
-      } else if (destPath) {
-        await fs.unlink(destPath).catch(() => {});
-      }
+      if (persisted?.url) await storageService.removeStoredFile(persisted.url, rootDir).catch(() => {});
+      else if (fileMeta?.tempPath) await fs.unlink(fileMeta.tempPath).catch(() => {});
       throw e;
     }
   }
@@ -247,18 +258,31 @@ class MaterialService {
   async replaceWithUpload(id, { fileMeta, name, description, tags, groupId }, uploadCfg, rootDir) {
     const doc = await Material.findById(id);
     if (!doc) return null;
-    let persisted;
+    let persisted = null;
     const oldUrl = doc.url;
-    let destPath;
-    let withHash;
+    const oldDriver = doc.storageDriver || 'local';
     try {
-      persisted = await this.persistUploadedFile(fileMeta, uploadCfg, rootDir);
-      destPath = persisted._localPath;
-      delete persisted._localPath;
-
-      withHash = await this.applyDedupeByHash(persisted, destPath);
-      const rest = { ...withHash };
-      delete rest._ownsBlob;
+      await this.assertMaterialNotInUse(doc);
+      const fileHash = await md5FileHex(fileMeta.tempPath);
+      const size = Number(fileMeta.size) >= 0 ? Number(fileMeta.size) : 0;
+      const dup = await Material.findOne({ fileHash, size }).lean();
+      let rest;
+      if (dup?.url) {
+        await fs.unlink(fileMeta.tempPath).catch(() => {});
+        rest = {
+          url: dup.url,
+          type: dup.type,
+          mimeType: dup.mimeType || '',
+          size: dup.size,
+          thumbnail: dup.thumbnail || '',
+          storageDriver: dup.storageDriver || 'local',
+          fileHash
+        };
+      } else {
+        persisted = await this.persistUploadedFile(fileMeta, uploadCfg, rootDir);
+        delete persisted._localPath;
+        rest = { ...persisted, fileHash };
+      }
       if (name !== undefined && String(name).trim()) doc.name = String(name).trim();
       if (description !== undefined) doc.description = String(description).trim();
       if (tags !== undefined) {
@@ -269,13 +293,12 @@ class MaterialService {
       await doc.save();
 
       const leftOld = await Material.countDocuments({ url: oldUrl });
-      if (leftOld === 0) await removeStoredFileIfManaged(oldUrl, rootDir, uploadCfg.publicPath, uploadCfg.dir);
+      if (leftOld === 0) await storageService.removeStoredFile(oldUrl, rootDir, { driver: oldDriver }).catch(() => {});
 
       return doc.toJSON();
     } catch (e) {
-      if (withHash && withHash._ownsBlob && withHash.url) {
-        await removeStoredFileIfManaged(withHash.url, rootDir, uploadCfg.publicPath, uploadCfg.dir).catch(() => {});
-      } else if (destPath) await fs.unlink(destPath).catch(() => {});
+      if (persisted?.url) await storageService.removeStoredFile(persisted.url, rootDir).catch(() => {});
+      else if (fileMeta?.tempPath) await fs.unlink(fileMeta.tempPath).catch(() => {});
       throw e;
     }
   }
@@ -288,6 +311,7 @@ class MaterialService {
       type: payload.type || 'other',
       url: (payload.url || '').trim(),
       thumbnail: (payload.thumbnail || '').trim(),
+      storageDriver: payload.storageDriver === 'qiniu' ? 'qiniu' : 'local',
       mimeType: (payload.mimeType || '').trim(),
       size: Number(payload.size) >= 0 ? Number(payload.size) : 0,
       description: (payload.description || '').trim(),
@@ -314,11 +338,22 @@ class MaterialService {
 
   async bulkDelete(ids, uploadCfg, rootDir) {
     const validIds = [...new Set((ids || []).map(String).filter((i) => mongoose.isValidObjectId(i)))];
-    let n = 0;
+    let deleted = 0;
+    const blocked = [];
     for (const id of validIds) {
-      if (await this.delete(id, uploadCfg, rootDir)) n += 1;
+      try {
+        if (await this.delete(id, uploadCfg, rootDir)) deleted += 1;
+      } catch (err) {
+        if (err.code !== 'MATERIAL_IN_USE') throw err;
+        blocked.push({
+          id,
+          usageCount: err.usageCount || 0,
+          usageRefs: err.usageRefs || [],
+          message: err.message
+        });
+      }
     }
-    return n;
+    return { deleted, blocked };
   }
 
   async bulkSetGroup(ids, groupIdRaw) {
@@ -340,11 +375,13 @@ class MaterialService {
   async delete(id, uploadCfg, rootDir) {
     const doc = await Material.findById(id);
     if (!doc) return false;
+    await this.assertMaterialNotInUse(doc);
     const url = doc.url;
+    const driver = doc.storageDriver || 'local';
     await Material.findByIdAndDelete(id);
-    if (uploadCfg && rootDir) {
+    if (rootDir) {
       const remaining = await Material.countDocuments({ url });
-      if (remaining === 0) await removeStoredFileIfManaged(url, rootDir, uploadCfg.publicPath, uploadCfg.dir);
+      if (remaining === 0) await storageService.removeStoredFile(url, rootDir, { driver }).catch(() => {});
     }
     return true;
   }

@@ -322,7 +322,20 @@ function cardLabel(row) {
 function cardTitle(row) {
   if (!row) return '';
   const parts = [row.name, row.fileHash && `MD5: ${row.fileHash}`, row.url].filter(Boolean);
+  if (row.inUse) parts.push(`使用中：${materialUsageText(row)}`);
   return parts.join('\n');
+}
+
+function materialUsageText(row) {
+  const refs = Array.isArray(row?.usageRefs) ? row.usageRefs : [];
+  if (!refs.length) return '该素材正在被业务内容引用';
+  const text = refs
+    .slice(0, 5)
+    .map((item) => `${item.label || '业务引用'}：${item.title || '未命名'}`)
+    .join('；');
+  const total = Number(row.usageCount || refs.length);
+  const more = total > 5 ? `；另有 ${total - 5} 处` : '';
+  return `${text}${more}`;
 }
 
 function absoluteAssetUrl(u) {
@@ -623,9 +636,21 @@ async function runBulkSaveToGroup() {
 
 async function confirmBulkDelete() {
   try {
-    await ElMessageBox.confirm(`确定删除选中的 ${selectedIds.value.length} 条素材？`, '提示', { type: 'warning' });
-    await bulkDeleteMaterials(selectedIds.value);
-    ElMessage.success('删除成功');
+    const currentPageSelected = tableData.value.filter((row) => selectedIds.value.includes(row.id));
+    const knownInUseCount = currentPageSelected.filter((row) => row.inUse).length;
+    const message =
+      knownInUseCount > 0
+        ? `确定删除选中的 ${selectedIds.value.length} 条素材？当前页有 ${knownInUseCount} 条正在使用，将被自动跳过。`
+        : `确定删除选中的 ${selectedIds.value.length} 条素材？`;
+    await ElMessageBox.confirm(message, '提示', { type: 'warning' });
+    const res = await bulkDeleteMaterials(selectedIds.value);
+    const deleted = Number(res?.deleted || 0);
+    const blocked = Array.isArray(res?.blocked) ? res.blocked : [];
+    if (blocked.length) {
+      ElMessage.warning(`已删除 ${deleted} 条，${blocked.length} 条正在使用已跳过`);
+    } else {
+      ElMessage.success('删除成功');
+    }
     selectedIds.value = [];
     loadData();
   } catch (e) {
@@ -699,6 +724,10 @@ async function saveQuickGroup() {
 }
 
 async function cardDelete(row) {
+  if (row?.inUse) {
+    ElMessage.warning(`素材正在被使用，不能删除：${materialUsageText(row)}`);
+    return;
+  }
   try {
     await deleteMaterial(row.id);
     selectedIds.value = selectedIds.value.filter((id) => id !== row.id);
