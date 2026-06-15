@@ -14,6 +14,16 @@ module.exports = {
   // Cookie signing keys
   keys: process.env.KEYS ? process.env.KEYS.split(',') : ['koa3-cli-secret-key'],
 
+  // CORS configuration
+  // 默认关闭跨域，避免新项目在没有明确安全边界时暴露给任意来源。
+  // 如需开放给前端应用，可设置 CORS_ENABLE=true，并用 CORS_ORIGIN 指定允许的来源。
+  cors: {
+    enable: process.env.CORS_ENABLE === 'true',
+    options: {
+      origin: process.env.CORS_ORIGIN || '*'
+    }
+  },
+
   // Static assets
   static: {
     enable: true,

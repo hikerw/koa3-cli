@@ -54,6 +54,7 @@ koa3-cli create my-api
 | 环境配置 | 通过 `config.default.js`、`config.local.js`、`config.prod.js` 管理环境差异 |
 | 日志 | 支持控制台日志、文件日志、访问日志、错误日志 |
 | 请求追踪 | 自动生成或透传 `x-request-id` |
+| CORS | 使用 `@koa/cors`，默认关闭，可通过配置显式开启 |
 | 参数校验 | 使用 Joi 校验 `body`、`query`、`params` |
 | 错误处理 | 统一处理业务异常、校验异常和未知异常 |
 | 静态资源 | 内置 `public` 静态目录和文档页 |
@@ -129,6 +130,8 @@ LOG_LEVEL=info
 LOG_DIR=logs
 LOG_ENABLE_CONSOLE=true
 LOG_ENABLE_FILE=true
+CORS_ENABLE=false
+CORS_ORIGIN=*
 ```
 
 ## 日志与请求追踪

@@ -4,6 +4,7 @@
  */
 const path = require('path');
 const fs = require('fs');
+const cors = require('@koa/cors');
 const bodyParser = require('koa-bodyparser');
 const serveStatic = require('koa-static');
 const views = require('@ladjs/koa-views');
@@ -63,6 +64,12 @@ function setup(app, config, logger) {
     if (fs.existsSync(viewPath)) {
       app.use(views(viewPath, config.view.options || { extension: 'ejs' }));
     }
+  }
+
+  // CORS 默认关闭，避免脚手架生成的项目在未明确授权时开放跨域。
+  // 需要给前端应用或第三方调用方开放接口时，可通过 config.cors.enable 或 CORS_ENABLE 开启。
+  if (config.cors && config.cors.enable === true) {
+    app.use(cors(config.cors.options || {}));
   }
 
   app.use(bodyParser(config.bodyParser || {}));
