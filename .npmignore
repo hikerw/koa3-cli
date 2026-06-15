@@ -35,6 +35,8 @@ coverage/
 # Temporary files
 tmp/
 temp/
+release-dist/
+release-temp/
 
 # Git
 .git/

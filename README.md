@@ -1,289 +1,241 @@
 # Koa3 CLI
 
-基于 Koa3 的脚手架项目，提供 CLI 工具快速创建项目。
+[![npm version](https://img.shields.io/npm/v/koa3-cli.svg)](https://www.npmjs.com/package/koa3-cli)
+[![license](https://img.shields.io/npm/l/koa3-cli.svg)](./LICENSE)
+[![node](https://img.shields.io/badge/node-%3E%3D20-339933.svg)](https://nodejs.org/)
 
-- 📖 文档地址：https://atwzc.cn/
-- 🔗 Gitee 地址：https://gitee.com/wangziwl/koa3-cli
+面向 Koa 3 的现代 Node.js API 项目脚手架。它不是只复制一个空目录，而是把后端项目常见的分层结构、环境配置、日志、错误处理、参数校验和 RESTful 示例先搭好，让你可以更快进入业务开发。
 
-## 安装 CLI 工具
+- 文档地址：https://atwzc.cn/
+- GitHub：https://github.com/hikerw/koa3-cli
+- Gitee：https://gitee.com/wangziwl/koa3-cli
+- npm：https://www.npmjs.com/package/koa3-cli
 
-### 全局安装（推荐）
+## 为什么选择 Koa3 CLI
+
+- 基于 Koa 3，适合需要轻量、清晰、可控的 Node.js API 服务。
+- 内置 Controller / Service / Model 分层，避免新项目从第一天就把逻辑堆在路由里。
+- 内置多环境配置，支持 `development`、`local`、`production` 差异化加载。
+- 内置请求日志、错误日志和 `x-request-id`，方便定位线上问题。
+- 内置 Joi 参数校验示例，校验失败统一返回 422。
+- 内置全局错误处理和 404 处理，接口响应行为更一致。
+- 提供 CLI，一条命令创建可运行项目。
+
+## 30 秒快速开始
+
+```bash
+npx koa3-cli create my-api
+cd my-api
+npm install
+npm run dev
+```
+
+启动后访问：
+
+- 首页：http://localhost:3000
+- API 示例：http://localhost:3000/api/user
+- 本地文档：http://localhost:3000/index.html
+
+也可以全局安装：
 
 ```bash
 npm install -g koa3-cli
+koa3-cli create my-api
 ```
 
-### 使用 npx（无需安装）
+## 当前能力
 
-```bash
-npx koa3-cli create my-project
-```
-
-## 使用 CLI 创建项目
-
-```bash
-# 创建新项目
-koa3-cli create my-project
-
-# 进入项目目录
-cd my-project
-
-# 安装依赖
-npm install
-
-# 启动开发服务器
-npm run dev
-```
+| 能力 | 说明 |
+| --- | --- |
+| Koa 3 | 使用 Koa 3 作为核心 Web 框架 |
+| 路由 | 使用 `@koa/router` 管理 API 路由 |
+| 分层结构 | 默认拆分 `controller`、`service`、`model`、`middleware`、`lib` |
+| 环境配置 | 通过 `config.default.js`、`config.local.js`、`config.prod.js` 管理环境差异 |
+| 日志 | 支持控制台日志、文件日志、访问日志、错误日志 |
+| 请求追踪 | 自动生成或透传 `x-request-id` |
+| 参数校验 | 使用 Joi 校验 `body`、`query`、`params` |
+| 错误处理 | 统一处理业务异常、校验异常和未知异常 |
+| 静态资源 | 内置 `public` 静态目录和文档页 |
 
 ## 项目结构
 
-```
+```text
 koa3-cli/
-├── app/                    # 应用代码目录
-│   ├── controller/        # 控制器目录
-│   │   ├── home.js        # 首页控制器
-│   │   └── user.js        # 用户控制器
-│   ├── service/           # 服务层目录
-│   │   └── user.js        # 用户服务
-│   ├── model/             # 数据模型目录
-│   │   └── user.js        # 用户模型
-│   ├── middleware/        # 中间件目录
-│   │   ├── index.js       # 中间件入口
-│   │   ├── auth.js        # 认证中间件示例
-│   │   ├── requestLogger.js # 请求日志中间件
-│   │   └── errorHandler.js  # 全局错误处理
-│   ├── lib/               # 基础能力目录
-│   │   ├── logger.js      # 日志工具
-│   │   └── validator.js   # 参数校验中间件（Joi）
-│   ├── schema/            # 参数校验规则目录
-│   │   └── user.js        # 用户相关校验规则
-│   └── router.js          # 路由配置
-├── config/                # 配置文件目录
-│   ├── config.default.js  # 默认配置
-│   ├── config.local.js    # 本地开发配置
-│   └── config.prod.js     # 生产环境配置
-├── logs/                  # 日志输出目录（运行时自动创建）
-├── public/                # 静态资源目录
-│   └── index.html         # 首页
-├── app.js                 # 应用入口文件
-├── package.json           # 项目配置
-└── README.md             # 项目说明
+├── app/                       # 应用代码目录
+│   ├── controller/            # 控制器：处理请求输入输出
+│   │   ├── home.js
+│   │   └── user.js
+│   ├── service/               # 服务层：承载业务逻辑
+│   │   └── user.js
+│   ├── model/                 # 模型层：描述数据结构或数据访问
+│   │   └── user.js
+│   ├── middleware/            # 中间件
+│   │   ├── auth.js
+│   │   ├── errorHandler.js
+│   │   ├── index.js
+│   │   ├── notFound.js
+│   │   └── requestLogger.js
+│   ├── lib/                   # 基础工具
+│   │   ├── logger.js
+│   │   └── validator.js
+│   ├── processEvents.js       # 进程异常事件处理
+│   ├── router.js              # 路由入口
+│   └── setup.js               # 应用装配入口
+├── config/                    # 多环境配置
+│   ├── config.default.js
+│   ├── config.local.js
+│   ├── config.prod.js
+│   └── loader.js
+├── public/                    # 静态资源和本地文档
+├── bin/cli.js                 # CLI 入口
+├── app.js                     # 应用启动入口
+├── env.example                # 环境变量示例
+└── package.json
 ```
 
-## 特性
-
-- ✅ 基于 Koa3，轻量高效
-- ✅ CLI 工具，一键创建项目
-- ✅ 项目结构，清晰规范
-- ✅ 支持多环境配置（development/production）
-- ✅ MVC 架构（Controller/Service/Model）
-- ✅ 中间件支持
-- ✅ 统一的错误处理（校验失败返回 422，message 为第一条校验提示）
-- ✅ 内置日志系统（访问日志、错误日志、请求追踪）
-- ✅ 基于 Joi 的参数校验（body/query/params，校验结果挂到 `ctx.state.validated`）
-- ✅ RESTful API 示例
-
-## 快速开始
-
-### 安装依赖
+## 常用命令
 
 ```bash
-npm install
-```
-
-### 启动项目
-
-开发环境（使用 nodemon 自动重启）：
-```bash
+# 启动开发环境
 npm run dev
-```
 
-生产环境：
-```bash
+# 启动生产环境
 npm start
+
+# 查看 CLI 帮助
+npx koa3-cli --help
+
+# 查看 CLI 版本
+npx koa3-cli --version
 ```
-
-### 访问应用
-
-- 首页: http://localhost:3000
-- API 示例: http://localhost:3000/api/user
-- 文档: http://localhost:3000/index.html
 
 ## 环境配置
 
-项目支持多环境配置，通过 `NODE_ENV` 环境变量控制：
+项目通过 `NODE_ENV` 控制配置加载：
 
-- `development` 或 `local`: 加载 `config.local.js`
-- `production`: 加载 `config.prod.js`
-- 默认: 加载 `config.default.js`
+- `development` 或 `local`：加载 `config.local.js`
+- `production`：加载 `config.prod.js`
+- 其他情况：加载 `config.default.js`
 
-可以通过 `.env` 文件配置环境变量（参考 `.env.example`）。
-
-### 日志配置
-
-日志系统默认开启控制台和文件输出，支持 4 个级别：`debug`、`info`、`warn`、`error`。
-
-`.env` 可配置项：
+可以复制 `env.example` 为 `.env` 后按需修改：
 
 ```bash
+PORT=3000
+NODE_ENV=development
 LOG_LEVEL=info
 LOG_DIR=logs
 LOG_ENABLE_CONSOLE=true
 LOG_ENABLE_FILE=true
 ```
 
-运行后会在日志目录按天生成文件：
+## 日志与请求追踪
 
-- `<date>.log`：通用应用日志
-- `<date>.access.log`：请求访问日志（JSON 行格式）
-- `<date>.error.log`：错误级别日志
+日志系统默认支持 4 个级别：`debug`、`info`、`warn`、`error`。运行后会在日志目录按天生成文件：
 
-请求日志中间件会自动处理 `x-request-id`：
+- `<date>.log`：应用日志
+- `<date>.access.log`：访问日志，采用 JSON 行格式
+- `<date>.error.log`：错误日志
 
-- 如果请求头带有 `x-request-id`，服务端会透传并写入日志
-- 如果没有，服务端会自动生成并在响应头返回
-- 出错日志会带上 `requestId`，便于串联排查
+请求日志中间件会处理 `x-request-id`：
+
+- 请求头已有 `x-request-id` 时，服务端会透传并写入日志。
+- 请求头没有 `x-request-id` 时，服务端会自动生成并写入响应头。
+- 错误日志会带上 `requestId`，方便串联一次请求的完整链路。
 
 ## 参数校验
 
-使用 Joi 进行请求参数校验，通过 `app/lib/validator.js` 的 `validate(schemas)` 生成中间件。
-
-### 使用方式
-
-在路由中挂载校验中间件，按需校验 `body`、`query`、`params`：
+项目内置 `app/lib/validator.js`，提供两种使用方式：
 
 ```javascript
-const { validate } = require('./lib/validator');
-const userSchema = require('./schema/user');
-
-// 只校验路径参数
-router.get('/api/user/:id', validate({ params: userSchema.idParam }), userController.detail);
-
-// 只校验请求体
-router.post('/api/user', validate({ body: userSchema.createUserBody }), userController.create);
-
-// 同时校验 params + body
-router.put('/api/user/:id', validate({
-  params: userSchema.idParam,
-  body: userSchema.updateUserBody
-}), userController.update);
+const { Joi, validate, validateValue } = require('../lib/validator');
 ```
 
-校验通过后，结果在 **`ctx.state.validated`** 中：
+### 在路由中使用中间件
 
-- `ctx.state.validated.body`：校验后的 body
-- `ctx.state.validated.query`：校验后的 query
-- `ctx.state.validated.params`：校验后的 params
+```javascript
+const { validate, Joi } = require('./lib/validator');
 
-控制器中应优先使用 `ctx.state.validated`，未走校验的路由可继续使用 `ctx.request.body` / `ctx.params`。
+const createUserBody = Joi.object({
+  name: Joi.string().trim().min(1).max(100).required(),
+  email: Joi.string().email().allow('').optional()
+});
 
-### 校验失败响应
+router.post('/api/user', validate({ body: createUserBody }), userController.create);
+```
 
-校验未通过时返回 **422**，`message` 为**第一条**未通过项的提示，`errors` 为全部校验项：
+校验通过后，结果会挂到 `ctx.state.validated`：
+
+- `ctx.state.validated.body`
+- `ctx.state.validated.query`
+- `ctx.state.validated.params`
+
+### 在控制器中校验单个对象
+
+当前用户示例在 `app/controller/user.js` 中使用 `validateValue()`，适合把校验规则放在控制器附近，便于小项目快速阅读和维护。
+
+```javascript
+const userData = await validateValue(createUserBodySchema, ctx.request.body);
+```
+
+校验失败时会返回 422：
 
 ```json
 {
   "success": false,
   "message": "用户名为必填",
   "errors": [
-    { "field": "name", "message": "用户名为必填" }
+    {
+      "field": "name",
+      "message": "用户名为必填"
+    }
   ]
 }
 ```
 
-### 添加新的校验规则
-
-在 `app/schema/` 下新增或修改 schema 文件，使用 Joi 定义规则（支持 `.messages()` 自定义提示），在路由中通过 `validate({ body: xxx })` 等引用即可。详见 `app/schema/user.js`。
-
 ## API 示例
 
-### 获取用户列表
 ```bash
+# 获取用户列表
 GET /api/user
-```
 
-### 获取用户详情
-```bash
+# 获取用户详情
 GET /api/user/:id
-```
 
-### 创建用户
-```bash
+# 创建用户
 POST /api/user
 Content-Type: application/json
 
 {
   "name": "张三",
-  "email": "zhangsan@example.com"
+  "email": "zhangsan@example.com",
+  "age": 18
 }
-```
 
-### 更新用户
-```bash
+# 更新用户
 PUT /api/user/:id
 Content-Type: application/json
 
 {
-  "name": "李四",
-  "email": "lisi@example.com"
+  "name": "李四"
 }
-```
 
-### 删除用户
-```bash
+# 删除用户
 DELETE /api/user/:id
 ```
 
-## 开发指南
+## 分支说明
 
-### 添加新的控制器
+- `master`：稳定的 Koa 3 API 脚手架，适合作为 npm 默认模板和开源首屏展示。
+- `admin`：后台管理方向的功能分支，包含登录鉴权、菜单、角色、权限、素材管理、系统配置和 Vue 管理端等能力，适合继续打磨成进阶模板。
 
-1. 在 `app/controller/` 目录下创建控制器文件
-2. 在 `app/router.js` 中注册路由
+## 后续路线
 
-示例：
-```javascript
-// app/controller/product.js
-class ProductController {
-  async list(ctx) {
-    ctx.body = await productService.getList();
-  }
-}
-module.exports = new ProductController();
-
-// app/router.js
-const productController = require('./controller/product');
-router.get('/api/product', productController.list);
-```
-
-### 添加新的服务
-
-在 `app/service/` 目录下创建服务文件，处理业务逻辑。
-
-### 添加新的模型
-
-在 `app/model/` 目录下创建模型文件，处理数据访问。
-
-### 添加中间件
-
-在 `app/middleware/` 目录下创建中间件文件，然后在 `app/middleware/index.js` 中引入使用。
-
-### 添加参数校验
-
-1. 在 `app/schema/` 下定义 Joi 规则（可参考 `app/schema/user.js`）
-2. 在 `app/router.js` 中为对应路由添加 `validate({ body, query, params })` 中间件
-3. 在控制器中从 `ctx.state.validated` 读取已校验数据
-
-## 技术栈
-
-- **Koa3**: Web 框架
-- **@koa/router**: 路由
-- **koa-bodyparser**: 请求体解析
-- **joi**: 参数校验（body/query/params）
-- **koa-static**: 静态资源服务
-- **koa-views**: 模板引擎支持
-- **dotenv**: 环境变量管理
+- 增加 CLI 创建项目的自动化测试。
+- 增加 GitHub Actions，保证脚手架创建出的项目可以安装和启动。
+- 增加 TypeScript 模板。
+- 将 `admin` 分支能力整理为可选模板，例如 `koa3-cli create my-api --template admin`。
+- 增加 `add controller/service/route` 等代码生成命令。
 
 ## 许可证
 
-MIT
+[MIT](./LICENSE)

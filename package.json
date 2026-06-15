@@ -1,11 +1,23 @@
 {
   "name": "koa3-cli",
   "version": "1.0.9",
-  "description": "Koa3脚手架",
+  "description": "面向 Koa 3 的现代 Node.js API 项目脚手架",
   "main": "app.js",
   "bin": {
     "koa3-cli": "bin/cli.js"
   },
+  "files": [
+    "app",
+    "bin",
+    "config",
+    "public",
+    "app.js",
+    "env.example",
+    "README.md",
+    "LICENSE",
+    ".gitignore",
+    ".npmignore"
+  ],
   "preferGlobal": true,
   "scripts": {
     "start": "node app.js",
@@ -14,16 +26,27 @@
   },
   "keywords": [
     "koa3",
+    "koa",
+    "koa-cli",
+    "nodejs",
+    "backend",
+    "rest-api",
     "scaffold",
     "cli"
   ],
   "author": "hikerw <965366906@qq.com>",
   "repository": {
     "type": "git",
-    "url": "https://gitee.com/wangziwl/koa3-cli"
+    "url": "git+https://github.com/hikerw/koa3-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/hikerw/koa3-cli/issues"
   },
   "homepage": "https://atwzc.cn/",
   "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
   "dependencies": {
     "@koa/router": "^15.3.1",
     "@ladjs/koa-views": "^9.0.0",
