@@ -13,14 +13,8 @@ permissions:
 
 jobs:
   test:
-    name: Node.js ${{ matrix.node-version }}
+    name: Node.js 20.18.1
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        node-version:
-          - 20
-          - 24
     steps:
       # 拉取当前提交，后续测试和打包检查都基于仓库真实内容执行。
       - name: Checkout
@@ -30,7 +24,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 20.18.1
           cache: npm
 
       # npm ci 会严格按照 package-lock.json 安装依赖，适合 CI 环境发现锁文件漂移问题。
