@@ -1,0 +1,46 @@
+name: CI
+
+on:
+  push:
+    branches:
+      - master
+  pull_request:
+    branches:
+      - master
+
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Node.js ${{ matrix.node-version }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node-version:
+          - 20
+          - 24
+    steps:
+      # 拉取当前提交，后续测试和打包检查都基于仓库真实内容执行。
+      - name: Checkout
+        uses: actions/checkout@v5
+
+      # 使用官方 setup-node 固定 Node 版本，保证本地和 CI 的运行环境可复现。
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: ${{ matrix.node-version }}
+          cache: npm
+
+      # npm ci 会严格按照 package-lock.json 安装依赖，适合 CI 环境发现锁文件漂移问题。
+      - name: Install dependencies
+        run: npm ci
+
+      # 运行 CLI 关键路径测试，保证脚手架至少能创建一个结构正确的新项目。
+      - name: Run tests
+        run: npm test
+
+      # 检查 npm 发布内容，防止临时目录、构建产物或无关文件混入发布包。
+      - name: Check npm package contents
+        run: npm pack --dry-run

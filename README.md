@@ -1,6 +1,7 @@
 # Koa3 CLI
 
 [![npm version](https://img.shields.io/npm/v/koa3-cli.svg)](https://www.npmjs.com/package/koa3-cli)
+[![CI](https://github.com/hikerw/koa3-cli/actions/workflows/ci.yml/badge.svg)](https://github.com/hikerw/koa3-cli/actions/workflows/ci.yml)
 [![license](https://img.shields.io/npm/l/koa3-cli.svg)](./LICENSE)
 [![node](https://img.shields.io/badge/node-%3E%3D20-339933.svg)](https://nodejs.org/)
 
@@ -56,6 +57,8 @@ koa3-cli create my-api
 | 参数校验 | 使用 Joi 校验 `body`、`query`、`params` |
 | 错误处理 | 统一处理业务异常、校验异常和未知异常 |
 | 静态资源 | 内置 `public` 静态目录和文档页 |
+| 自动化测试 | 使用 `node:test` 覆盖 CLI 创建项目关键路径 |
+| CI | 使用 GitHub Actions 自动运行测试和 npm 打包检查 |
 
 ## 项目结构
 
@@ -230,8 +233,7 @@ DELETE /api/user/:id
 
 ## 后续路线
 
-- 增加 CLI 创建项目的自动化测试。
-- 增加 GitHub Actions，保证脚手架创建出的项目可以安装和启动。
+- 扩展 CLI 创建项目后的启动测试和接口冒烟测试。
 - 增加 TypeScript 模板。
 - 将 `admin` 分支能力整理为可选模板，例如 `koa3-cli create my-api --template admin`。
 - 增加 `add controller/service/route` 等代码生成命令。
