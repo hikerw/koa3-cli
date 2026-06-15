@@ -278,10 +278,11 @@ router.get('/api/product', productController.list);
 
 - **Koa3**: Web 框架
 - **@koa/router**: 路由
+- **@koa/cors**: 跨域资源共享
 - **koa-bodyparser**: 请求体解析
 - **joi**: 参数校验（body/query/params）
 - **koa-static**: 静态资源服务
-- **koa-views**: 模板引擎支持
+- **@ladjs/koa-views**: 模板引擎支持
 - **dotenv**: 环境变量管理
 
 ## 许可证

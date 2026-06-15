@@ -58,17 +58,11 @@ function createStaticOptions(staticOptions = {}) {
   };
 }
 async function setup(app, config, logger) {
-  // CORS：解除跨域限制（允许携带 Authorization 头）
-  // 注意：若需要携带 Cookie，需将 origin 改为具体域名且 credentials=true
-  app.use(
-    cors({
-      origin: '*',
-      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-      allowHeaders: ['Content-Type', 'Authorization'],
-      exposeHeaders: ['Content-Length', 'Content-Type'],
-      maxAge: 86400
-    })
-  );
+  // CORS：后台管理端通常和接口服务分离部署，因此默认开启跨域并允许 Authorization 头。
+  // 如需携带 Cookie，请把 origin 改为具体域名并在 config.cors.options 中显式设置 credentials=true。
+  if (config.cors && config.cors.enable !== false) {
+    app.use(cors(config.cors.options || {}));
+  }
 
   // 静态资源
   if (config.static && config.static.enable !== false) {

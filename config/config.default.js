@@ -14,6 +14,20 @@ module.exports = {
   // Cookie signing keys
   keys: process.env.KEYS ? process.env.KEYS.split(',') : ['koa3-cli-secret-key'],
 
+  // CORS configuration
+  // admin 分支包含前后端分离管理端，默认允许跨域并开放 Authorization 请求头。
+  // 生产环境建议通过 CORS_ORIGIN 指定真实前端域名，避免长期使用通配来源。
+  cors: {
+    enable: process.env.CORS_ENABLE !== 'false',
+    options: {
+      origin: process.env.CORS_ORIGIN || '*',
+      methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+      allowHeaders: ['Content-Type', 'Authorization'],
+      exposeHeaders: ['Content-Length', 'Content-Type'],
+      maxAge: 86400
+    }
+  },
+
   // Static assets
   static: {
     enable: true,
