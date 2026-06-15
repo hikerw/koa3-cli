@@ -24,7 +24,7 @@ jobs:
     steps:
       # 拉取当前提交，后续测试和打包检查都基于仓库真实内容执行。
       - name: Checkout
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
 
       # 使用官方 setup-node 固定 Node 版本，保证本地和 CI 的运行环境可复现。
       - name: Setup Node.js
