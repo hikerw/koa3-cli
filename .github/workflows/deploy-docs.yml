@@ -1,0 +1,46 @@
+name: Deploy Docs
+
+on:
+  push:
+    branches:
+      - master
+    paths:
+      - public/**
+      - .github/workflows/deploy-docs.yml
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: Deploy public docs
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      # public 目录已经是静态文档产物，这里只需要把它作为 Pages 构建产物上传。
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # 使用 GitHub 官方 Pages Action 初始化部署环境，避免依赖本地服务器或自有域名。
+      - name: Setup Pages
+        uses: actions/configure-pages@v5
+
+      # 将 public 目录上传为 Pages artifact，后续由 deploy-pages 发布到 GitHub Pages。
+      - name: Upload artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: public
+
+      # 发布到 https://hikerw.github.io/koa3-cli/。
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

@@ -6,7 +6,7 @@
 
 面向 Koa 3 的现代 Node.js API 项目脚手架。它不是只复制一个空目录，而是把后端项目常见的分层结构、环境配置、日志、错误处理、参数校验和 RESTful 示例先搭好，让你可以更快进入业务开发。
 
-- 文档地址：https://atwzc.cn/
+- 文档地址：https://hikerw.github.io/koa3-cli/
 - GitHub：https://github.com/hikerw/koa3-cli
 - Gitee：https://gitee.com/wangziwl/koa3-cli
 - npm：https://www.npmjs.com/package/koa3-cli

@@ -25,7 +25,7 @@ Koa3 CLI - 快速创建 Koa3 项目脚手架
 示例:
   koa3-cli create my-app
 
-更多信息: https://gitee.com/wangziwl/koa3-cli
+更多信息: https://github.com/hikerw/koa3-cli
 `);
 }
 
@@ -180,7 +180,7 @@ function createProject(projectName) {
     console.log(`  cd ${projectName}`);
     console.log('  npm install');
     console.log('  npm run dev\n');
-    console.log('📖 文档: https://atwzc.cn/');
+    console.log('📖 文档: https://hikerw.github.io/koa3-cli/');
     console.log('🔗 Gitee: https://gitee.com/wangziwl/koa3-cli\n');
 
   } catch (error) {

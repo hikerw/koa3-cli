@@ -42,7 +42,7 @@
   "bugs": {
     "url": "https://github.com/hikerw/koa3-cli/issues"
   },
-  "homepage": "https://atwzc.cn/",
+  "homepage": "https://hikerw.github.io/koa3-cli/",
   "license": "MIT",
   "engines": {
     "node": ">=20"
