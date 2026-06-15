@@ -11,6 +11,8 @@
 - GitHub：https://github.com/hikerw/koa3-cli
 - Gitee：https://gitee.com/wangziwl/koa3-cli
 - npm：https://www.npmjs.com/package/koa3-cli
+- 更新日志：[CHANGELOG.md](./CHANGELOG.md)
+- 发布流程：[RELEASE.md](./RELEASE.md)
 
 ## 为什么选择 Koa3 CLI
 
