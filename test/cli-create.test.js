@@ -35,6 +35,43 @@ test('CLI 可以输出当前版本号', () => {
   assert.match(result.stdout, /^koa3-cli v\d+\.\d+\.\d+/);
 });
 
+test('CLI create --help 只展示帮助信息，不创建项目目录', () => {
+  const workspace = createTempWorkspace();
+  const helpProjectPath = path.join(workspace, '--help');
+
+  try {
+    const result = spawnSync(process.execPath, [cliPath, 'create', '--help'], {
+      cwd: workspace,
+      encoding: 'utf8'
+    });
+
+    assert.equal(result.status, 0);
+    assert.match(result.stdout, /可用模板/);
+    assert.equal(fs.existsSync(helpProjectPath), false, '查看 create 帮助时不应该创建 --help 目录');
+  } finally {
+    fs.rmSync(workspace, { recursive: true, force: true });
+  }
+});
+
+test('CLI create 遇到未知模板时会返回明确错误', () => {
+  const workspace = createTempWorkspace();
+  const projectName = 'bad-template-app';
+  const projectPath = path.join(workspace, projectName);
+
+  try {
+    const result = spawnSync(process.execPath, [cliPath, 'create', projectName, '--template', 'missing'], {
+      cwd: workspace,
+      encoding: 'utf8'
+    });
+
+    assert.notEqual(result.status, 0);
+    assert.match(result.stderr, /未知模板/);
+    assert.equal(fs.existsSync(projectPath), false, '模板参数错误时不应该创建项目目录');
+  } finally {
+    fs.rmSync(workspace, { recursive: true, force: true });
+  }
+});
+
 test('CLI create 可以生成可运行的 Koa3 项目骨架', () => {
   const workspace = createTempWorkspace();
   const projectName = 'demo-api';
@@ -73,6 +110,62 @@ test('CLI create 可以生成可运行的 Koa3 项目骨架', () => {
     assert.equal(packageJson.bin, undefined, '生成后的业务项目不应该继续暴露 CLI bin 字段');
   } finally {
     // 测试结束后清理临时项目，保证重复运行测试时不会受到上一次结果影响。
+    fs.rmSync(workspace, { recursive: true, force: true });
+  }
+});
+
+test('CLI create --template admin 可以生成后台管理项目骨架', () => {
+  const workspace = createTempWorkspace();
+  const projectName = 'demo-admin';
+  const projectPath = path.join(workspace, projectName);
+
+  try {
+    const result = spawnSync(process.execPath, [cliPath, 'create', projectName, '--template', 'admin'], {
+      cwd: workspace,
+      encoding: 'utf8'
+    });
+
+    assert.equal(result.status, 0, result.stderr || result.stdout);
+    assert.match(result.stdout, /后台管理模板/);
+
+    const expectedFiles = [
+      'app.js',
+      'package.json',
+      'package-lock.json',
+      '.gitignore',
+      '.npmignore',
+      '.env',
+      'env.example',
+      'app/controller/admin.js',
+      'app/router/modules/system.js',
+      'app/service/storage.js',
+      'client/package.json',
+      'client/package-lock.json',
+      'client/.env',
+      'client/src/views/Login.vue',
+      'client/src/views/system/SystemUsers.vue',
+      'public/uploads/materials/.gitkeep'
+    ];
+
+    for (const file of expectedFiles) {
+      assert.ok(fs.existsSync(path.join(projectPath, file)), `缺少 admin 模板关键文件: ${file}`);
+    }
+
+    const packageJson = readJson(path.join(projectPath, 'package.json'));
+    assert.equal(packageJson.name, projectName);
+    assert.equal(packageJson.version, '1.0.0');
+    assert.equal(packageJson.description, `基于 Koa3 的 ${projectName} 后台管理项目`);
+    assert.equal(packageJson.bin, undefined, 'admin 业务项目不应该继续暴露 CLI bin 字段');
+    assert.equal(packageJson.files, undefined, 'admin 业务项目不应该继承 CLI 发布白名单');
+
+    const packageLock = readJson(path.join(projectPath, 'package-lock.json'));
+    assert.equal(packageLock.name, projectName);
+    assert.equal(packageLock.version, '1.0.0');
+    assert.equal(packageLock.packages[''].name, projectName);
+    assert.equal(packageLock.packages[''].version, '1.0.0');
+    assert.equal(packageLock.packages[''].bin, undefined, 'admin 锁文件根项不应该继续包含 CLI bin 字段');
+  } finally {
+    // admin 模板文件较多，测试结束后立即清理，避免临时目录长期占用磁盘空间。
     fs.rmSync(workspace, { recursive: true, force: true });
   }
 });

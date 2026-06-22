@@ -11,6 +11,7 @@
     "bin",
     "config",
     "public",
+    "templates",
     "app.js",
     "env.example",
     "README.md",

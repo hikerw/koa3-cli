@@ -46,6 +46,18 @@ npm install -g koa3-cli
 koa3-cli create my-api
 ```
 
+创建后台管理项目：
+
+```bash
+npx koa3-cli create my-admin --template admin
+cd my-admin
+npm install
+npm --prefix client install
+npm run dev
+```
+
+`admin` 模板包含 Koa 3 服务端、Vue 管理端、登录鉴权、菜单、角色、权限、素材管理、系统配置和 MongoDB 数据层。启动前请确认 `.env` 中的 `MONGO_URI`、`JWT_SECRET`、`ADMIN_USERNAME`、`ADMIN_PASSWORD` 已按实际环境配置。
+
 ## 当前能力
 
 | 能力 | 说明 |
@@ -62,6 +74,7 @@ koa3-cli create my-api
 | 静态资源 | 内置 `public` 静态目录和文档页 |
 | 自动化测试 | 使用 `node:test` 覆盖 CLI 创建项目关键路径 |
 | CI | 使用 GitHub Actions 自动运行测试和 npm 打包检查 |
+| 多模板 | 支持 `default` 基础 API 模板和 `admin` 后台管理模板 |
 
 ## 项目结构
 
@@ -113,6 +126,9 @@ npx koa3-cli --help
 
 # 查看 CLI 版本
 npx koa3-cli --version
+
+# 创建后台管理模板
+npx koa3-cli create my-admin --template admin
 ```
 
 ## 环境配置
@@ -234,13 +250,13 @@ DELETE /api/user/:id
 ## 分支说明
 
 - `master`：稳定的 Koa 3 API 脚手架，适合作为 npm 默认模板和开源首屏展示。
-- `admin`：后台管理方向的功能分支，包含登录鉴权、菜单、角色、权限、素材管理、系统配置和 Vue 管理端等能力，适合继续打磨成进阶模板。
+- `admin`：后台管理方向的功能分支，包含登录鉴权、菜单、角色、权限、素材管理、系统配置和 Vue 管理端等能力；当前已整理为 `--template admin` 可选模板。
 
 ## 后续路线
 
 - 扩展 CLI 创建项目后的启动测试和接口冒烟测试。
 - 增加 TypeScript 模板。
-- 将 `admin` 分支能力整理为可选模板，例如 `koa3-cli create my-api --template admin`。
+- 继续完善 `admin` 模板的初始化向导，例如数据库连接检测和默认管理员交互配置。
 - 增加 `add controller/service/route` 等代码生成命令。
 
 ## 许可证

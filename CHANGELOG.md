@@ -12,6 +12,7 @@
 
 ### Added
 
+- 新增 `admin` 后台管理模板，可通过 `koa3-cli create my-admin --template admin` 创建。
 - 新增 GitHub Pages 文档部署流程，使用 `public/` 目录作为静态文档源。
 - 新增 GitHub Actions CI，覆盖 Node.js `20.18.1` 和 `24`。
 - 新增 CLI 创建项目的自动化测试，验证版本输出、项目目录、关键文件和生成后的 `package.json`。
@@ -20,6 +21,7 @@
 
 ### Changed
 
+- CLI 创建流程支持 `--template` / `-t` 参数，并会根据模板输出对应的安装步骤。
 - 将主仓库地址切换为 GitHub，并在 README 首屏补充 npm、CI、License、Node.js badge。
 - 重写 README 首屏定位、快速开始、能力表、分支说明和路线图。
 - 将 `koa-cors` 替换为维护更明确的 `@koa/cors`。
