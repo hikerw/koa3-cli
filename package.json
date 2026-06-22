@@ -1,6 +1,6 @@
 {
   "name": "koa3-cli",
-  "version": "1.1.0",
+  "version": "1.1.1",
   "description": "面向 Koa 3 的现代 Node.js API 项目脚手架",
   "main": "app.js",
   "bin": {

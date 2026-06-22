@@ -255,7 +255,7 @@ DELETE /api/user/:id
 - `master`：稳定的 Koa 3 API 脚手架，适合作为 npm 默认模板和开源首屏展示。
 - `admin`：后台管理方向的功能分支，包含登录鉴权、菜单、角色、权限、素材管理、系统配置和 Vue 管理端等能力；当前已整理为 `--template admin` 可选模板。
 
-### 同步 admin 模板
+### 同步 admin 模板(为koa3-cli新增模板)
 
 当 `admin` 分支新增功能并提交后，可以回到 `master` 执行：
 
@@ -268,7 +268,6 @@ npm run sync:admin-template
 ## 后续路线
 
 - 扩展 CLI 创建项目后的启动测试和接口冒烟测试。
-- 增加 TypeScript 模板。
 - 继续完善 `admin` 模板的初始化向导，例如数据库连接检测和默认管理员交互配置。
 - 增加 `add controller/service/route` 等代码生成命令。
 

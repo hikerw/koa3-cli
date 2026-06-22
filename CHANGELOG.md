@@ -8,6 +8,17 @@
 - `MINOR`：新增向后兼容的能力、模板或工程化设施。
 - `PATCH`：修复问题、依赖补丁、安全修复和文档修正。
 
+## 1.1.1 - 2026-06-22
+
+### Added
+
+- 新增 `npm run sync:admin-template`，用于将 `admin` 分支最新代码同步到 `--template admin` 模板目录。
+
+### Changed
+
+- 将维护脚本目录加入 npm 发布白名单，确保发布包内包含模板同步脚本。
+- 更新 README 后续路线，移除暂不支持的 TypeScript 模板计划。
+
 ## 1.1.0 - 2026-06-15
 
 ### Added
@@ -18,7 +29,6 @@
 - 新增 CLI 创建项目的自动化测试，验证版本输出、项目目录、关键文件和生成后的 `package.json`。
 - 新增 CORS 配置能力，使用 `@koa/cors`，默认关闭并可通过环境变量开启。
 - 新增 npm 发布白名单，控制发布包内容，避免临时目录和构建产物混入。
-- 新增 `npm run sync:admin-template`，用于将 `admin` 分支同步到 `--template admin` 模板目录。
 
 ### Changed
 
