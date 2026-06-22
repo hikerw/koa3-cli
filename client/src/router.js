@@ -1,14 +1,16 @@
 import { createRouter, createWebHistory } from 'vue-router';
-import Login from './views/Login.vue';
-import Layout from './views/Layout.vue';
-import Home from './views/Home.vue';
-import SystemUsers from './views/system/SystemUsers.vue';
-import SystemRoles from './views/system/SystemRoles.vue';
-import SystemPermissions from './views/system/SystemPermissions.vue';
-import SystemMenus from './views/system/SystemMenus.vue';
-import SystemLogs from './views/system/SystemLogs.vue';
-import SystemMaterials from './views/system/SystemMaterials.vue';
-import SystemStorage from './views/system/SystemStorage.vue';
+
+// 页面组件使用路由级懒加载，避免后台管理端所有页面在首屏一次性打进主包。
+const Login = () => import('./views/Login.vue');
+const Layout = () => import('./views/Layout.vue');
+const Home = () => import('./views/Home.vue');
+const SystemUsers = () => import('./views/system/SystemUsers.vue');
+const SystemRoles = () => import('./views/system/SystemRoles.vue');
+const SystemPermissions = () => import('./views/system/SystemPermissions.vue');
+const SystemMenus = () => import('./views/system/SystemMenus.vue');
+const SystemLogs = () => import('./views/system/SystemLogs.vue');
+const SystemMaterials = () => import('./views/system/SystemMaterials.vue');
+const SystemStorage = () => import('./views/system/SystemStorage.vue');
 
 const routes = [
   { path: '/login', name: 'Login', component: Login, meta: { public: true } },
