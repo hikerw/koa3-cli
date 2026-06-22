@@ -129,6 +129,9 @@ npx koa3-cli --version
 
 # 创建后台管理模板
 npx koa3-cli create my-admin --template admin
+
+# 将 admin 分支最新代码同步到 --template admin
+npm run sync:admin-template
 ```
 
 ## 环境配置
@@ -251,6 +254,16 @@ DELETE /api/user/:id
 
 - `master`：稳定的 Koa 3 API 脚手架，适合作为 npm 默认模板和开源首屏展示。
 - `admin`：后台管理方向的功能分支，包含登录鉴权、菜单、角色、权限、素材管理、系统配置和 Vue 管理端等能力；当前已整理为 `--template admin` 可选模板。
+
+### 同步 admin 模板
+
+当 `admin` 分支新增功能并提交后，可以回到 `master` 执行：
+
+```bash
+npm run sync:admin-template
+```
+
+该命令会从本地 `admin` 分支同步后台代码到 `templates/admin`，并自动排除 `node_modules`、`dist`、`.env`、日志、临时目录等不应进入模板的文件。同步完成后建议继续执行 `npm test` 和 `npm pack --dry-run`，确认 CLI 创建流程和 npm 包内容都正常。
 
 ## 后续路线
 

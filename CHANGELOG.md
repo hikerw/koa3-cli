@@ -18,6 +18,7 @@
 - 新增 CLI 创建项目的自动化测试，验证版本输出、项目目录、关键文件和生成后的 `package.json`。
 - 新增 CORS 配置能力，使用 `@koa/cors`，默认关闭并可通过环境变量开启。
 - 新增 npm 发布白名单，控制发布包内容，避免临时目录和构建产物混入。
+- 新增 `npm run sync:admin-template`，用于将 `admin` 分支同步到 `--template admin` 模板目录。
 
 ### Changed
 

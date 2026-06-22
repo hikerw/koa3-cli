@@ -11,6 +11,7 @@
     "bin",
     "config",
     "public",
+    "scripts",
     "templates",
     "app.js",
     "env.example",
@@ -25,7 +26,8 @@
   "scripts": {
     "start": "node app.js",
     "dev": "nodemon app.js",
-    "test": "node --test"
+    "test": "node --test",
+    "sync:admin-template": "node scripts/sync-admin-template.js"
   },
   "keywords": [
     "koa3",
