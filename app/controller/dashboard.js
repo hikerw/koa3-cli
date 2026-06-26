@@ -1,40 +1,14 @@
-const User = require('../model/user');
-const Admin = require('../model/admin');
-const Role = require('../model/role');
-const Permission = require('../model/permission');
-const Menu = require('../model/menu');
-
-async function getStats() {
-  const [userCount, systemUserCount, roleCount, permissionCount, menuCount] = await Promise.all([
-    User.countDocuments(),
-    Admin.countDocuments(),
-    Role.countDocuments(),
-    Permission.countDocuments(),
-    Menu.countDocuments()
-  ]);
-  return {
-    userCount,
-    systemUserCount,
-    roleCount,
-    permissionCount,
-    menuCount
-  };
-}
-
-function getSystemInfo() {
-  return {
-    nodeVersion: process.version,
-    env: process.env.NODE_ENV || 'development',
-    platform: process.platform
-  };
-}
+const dashboardService = require('../service/dashboard');
 
 class DashboardController {
+  /**
+   * 首页统计接口。
+   *
+   * 只返回当前项目能真实采集到的数据，避免前端为了贴近截图展示不可验证的假指标。
+   */
   async stats(ctx) {
     try {
-      // const stats = await getStats();
-      const system = getSystemInfo();
-      ctx.body = {  system };
+      ctx.body = await dashboardService.getDashboardStats();
     } catch (err) {
       ctx.throw(500, err.message);
     }
