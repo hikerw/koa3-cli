@@ -44,40 +44,9 @@
           </template>
         </template>
         <template v-else>
-            <el-menu-item index="/">
-              <el-icon><UserFilled /></el-icon>
-              <span>首页</span>
-            </el-menu-item>
-            <el-menu-item index="/materials">
-              <el-icon><Picture /></el-icon>
-              <span>素材管理</span>
-            </el-menu-item>
-            <el-sub-menu v-if="isSuperAdmin" index="system">
-            <template #title>
-              <el-icon><Setting /></el-icon>
-              <span>系统设置</span>
-            </template>
-            <el-menu-item index="/system/users">
-              <el-icon><User /></el-icon>
-              <span>用户管理</span>
-            </el-menu-item>
-            <el-menu-item index="/system/roles">
-              <el-icon><Key /></el-icon>
-              <span>角色管理</span>
-            </el-menu-item>
-            <el-menu-item index="/system/permissions">
-              <el-icon><Lock /></el-icon>
-              <span>权限管理</span>
-            </el-menu-item>
-            <el-menu-item index="/system/menus">
-              <el-icon><Menu /></el-icon>
-              <span>菜单管理</span>
-            </el-menu-item>
-            <el-menu-item index="/system/storage">
-              <el-icon><Setting /></el-icon>
-              <span>存储配置</span>
-            </el-menu-item>
-          </el-sub-menu>
+          <el-menu-item index="menu-status" disabled>
+            <span>{{ menuLoading ? '菜单加载中' : menuError ? '菜单加载失败' : '暂无可访问菜单' }}</span>
+          </el-menu-item>
         </template>
       </el-menu>
     </el-aside>
@@ -111,12 +80,11 @@
 import { computed, onMounted, ref } from 'vue';
 import { useRouter } from 'vue-router';
 import * as Icons from '@element-plus/icons-vue';
-import { UserFilled, Setting, Document, Sunny, Moon, Fold, Expand, User, Key, Lock, Menu, Picture } from '@element-plus/icons-vue';
+import { Document, Sunny, Moon, Fold, Expand } from '@element-plus/icons-vue';
 import { fetchCurrentUserMenus } from '../api/system/menus';
 import { useTheme } from '../composables/useTheme';
 import { appTitle, appTitleShort } from '../config/app';
 
-const MENU_CACHE_KEY = 'menu_cache';
 const COLLAPSE_KEY = 'aside_collapse';
 
 const isCollapse = ref(localStorage.getItem(COLLAPSE_KEY) === '1');
@@ -127,27 +95,10 @@ function toggleCollapse() {
   localStorage.setItem(COLLAPSE_KEY, isCollapse.value ? '1' : '0');
 }
 
-/** 从缓存读取菜单（用于首屏渲染，避免闪烁） */
-function getMenuFromCache() {
-  try {
-    const raw = localStorage.getItem(MENU_CACHE_KEY);
-    if (!raw) return [];
-    const data = JSON.parse(raw);
-    return Array.isArray(data) ? data : [];
-  } catch {
-    return [];
-  }
-}
-
-function setMenuCache(tree) {
-  try {
-    localStorage.setItem(MENU_CACHE_KEY, JSON.stringify(Array.isArray(tree) ? tree : []));
-  } catch (_) {}
-}
-
 const router = useRouter();
-// 首屏即从缓存恢复，避免刷新时先空再出菜单的闪烁
-const menuTree = ref(getMenuFromCache());
+const menuTree = ref([]);
+const menuLoading = ref(true);
+const menuError = ref(false);
 
 const activeMenu = computed(() => router.currentRoute.value.path);
 
@@ -162,8 +113,6 @@ const adminInfo = computed(() => {
 });
 
 const adminUsername = computed(() => adminInfo.value?.username ?? '');
-
-const isSuperAdmin = computed(() => !!adminInfo.value?.isSuperAdmin);
 
 function getIcon(name) {
   if (!name || typeof name !== 'string') return Document;
@@ -200,24 +149,23 @@ const defaultOpeneds = computed(() => collectOpenedIds(menuTree.value, activeMen
 const { isDark, toggleTheme } = useTheme();
 
 async function loadMenuTree() {
-  // 先展示缓存，避免刷新时闪烁
-  const cached = getMenuFromCache();
-  if (cached.length) menuTree.value = cached;
-
+  menuLoading.value = true;
+  menuError.value = false;
   try {
     const tree = await fetchCurrentUserMenus();
-    const next = Array.isArray(tree) ? tree : [];
-    menuTree.value = next;
-    setMenuCache(next);
+    menuTree.value = Array.isArray(tree) ? tree : [];
   } catch (_) {
-    if (!cached.length) menuTree.value = [];
+    menuTree.value = [];
+    menuError.value = true;
+  } finally {
+    menuLoading.value = false;
   }
 }
 
 function logout() {
   localStorage.removeItem('token');
   localStorage.removeItem('admin');
-  localStorage.removeItem(MENU_CACHE_KEY);
+  localStorage.removeItem('menu_cache');
   router.replace('/login');
   window.location.reload();
 }

@@ -193,7 +193,7 @@ defineExpose({ openMultiPicker });
 
 .material-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(184px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(min(184px, 100%), 1fr));
   gap: 16px;
 }
 
@@ -347,11 +347,10 @@ defineExpose({ openMultiPicker });
 
 .mat-card__actions {
   margin-top: 0;
-  display: flex;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
   align-items: center;
-  justify-content: space-between;
-  flex-wrap: nowrap;
-  gap: 6px;
+  gap: 4px;
   opacity: 0;
   visibility: hidden;
   pointer-events: none;
@@ -366,7 +365,8 @@ defineExpose({ openMultiPicker });
     visibility 0.15s ease;
 }
 
-.mat-card:not(.mat-card--add):hover .mat-card__actions {
+.mat-card:not(.mat-card--add):hover .mat-card__actions,
+.mat-card:not(.mat-card--add):focus-within .mat-card__actions {
   opacity: 1;
   visibility: visible;
   pointer-events: auto;
@@ -391,7 +391,7 @@ defineExpose({ openMultiPicker });
   align-items: center;
   justify-content: center;
   height: 26px;
-  padding: 0 8px;
+  padding: 0;
   border: none;
   background: none;
   font-size: 12px;
@@ -435,6 +435,17 @@ defineExpose({ openMultiPicker });
   color: var(--el-text-color-placeholder);
   background: none;
   cursor: not-allowed;
+}
+
+@media (hover: none), (pointer: coarse) {
+  .mat-card__actions {
+    opacity: 1;
+    visibility: visible;
+    pointer-events: auto;
+    max-height: 56px;
+    padding-top: 6px;
+    transform: none;
+  }
 }
 
 .bulk-footer {
