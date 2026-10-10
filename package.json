@@ -13,7 +13,7 @@
     "dev:server": "nodemon app.js",
     "dev:adminclient": "npm --prefix client run dev",
     "package:release": "powershell -ExecutionPolicy Bypass -File scripts/package-release.ps1",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "node --test tests/*.test.js"
   },
   "keywords": [
     "koa3",

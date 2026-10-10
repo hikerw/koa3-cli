@@ -53,8 +53,9 @@
         </el-form-item>
         <el-form-item label="权限" prop="permissionIds">
           <el-select v-model="form.permissionIds" multiple filterable placeholder="选择权限" style="width: 100%">
-            <el-option v-for="p in permissionFlat" :key="p.id" :label="`${p.name} (${p.code})`" :value="p.id" />
+            <el-option v-for="p in permissionFlat" :key="p.id" :label="`[${{ menu: '菜单', api: '接口', button: '按钮' }[p.type] || p.type}] ${p.name} (${p.code})`" :value="p.id" />
           </el-select>
+          <div class="form-tip">菜单权限控制页面可见性，接口权限控制查看、新增、修改、删除等实际操作。</div>
         </el-form-item>
       </el-form>
       <template #footer>
@@ -97,7 +98,9 @@ async function loadPermissions() {
     }
     walk(tree || []);
     permissionFlat.value = flat;
-  } catch (_) {}
+  } catch (err) {
+    ElMessage.error(err.message || '权限列表加载失败');
+  }
 }
 
 async function loadData() {
@@ -174,4 +177,5 @@ onMounted(() => {
 <style scoped>
 .toolbar { display: flex; align-items: center; gap: 10px; margin-bottom: 12px; }
 .pagination { display: flex; justify-content: flex-end; padding: 12px 0 0; }
+.form-tip { font-size: 12px; color: var(--el-text-color-secondary); margin-top: 4px; }
 </style>

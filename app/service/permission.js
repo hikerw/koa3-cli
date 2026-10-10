@@ -1,4 +1,6 @@
 const Permission = require('../model/permission');
+const Menu = require('../model/menu');
+const apiPermissions = require('../lib/apiPermissions');
 
 function toTree(list, parentId = null) {
   return list
@@ -11,6 +13,20 @@ function toTree(list, parentId = null) {
 }
 
 class PermissionService {
+  async ensureApiPermissions() {
+    const menus = await Menu.find().select('path').lean();
+    for (const { code, name, menuPath } of apiPermissions) {
+      const menu = menus.find((item) => item.path === menuPath);
+      await Permission.updateOne({ code }, {
+        $setOnInsert: {
+          name, code, type: 'api', parentId: null,
+          description: '后端接口操作权限，需明确分配给角色；菜单权限不会自动授予此操作。',
+          menuIds: menu ? [menu._id] : []
+        }
+      }, { upsert: true });
+    }
+  }
+
   async getList({ page = 1, pageSize = 500, keyword = '', tree = false } = {}) {
     const filter = {};
     if (keyword && keyword.trim()) {

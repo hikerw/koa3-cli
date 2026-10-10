@@ -9,6 +9,9 @@
       <el-table :data="tableData" v-loading="loading" row-key="id" style="width: 100%">
         <el-table-column prop="name" label="名称" min-width="140" />
         <el-table-column prop="code" label="编码" min-width="160" />
+        <el-table-column prop="type" label="类型" width="100">
+          <template #default="{ row }">{{ { menu: '菜单', api: '接口', button: '按钮' }[row.type] || row.type }}</template>
+        </el-table-column>
         <el-table-column prop="description" label="描述" min-width="160" show-overflow-tooltip />
         <el-table-column label="操作" width="140" fixed="right">
           <template #default="{ row }">
@@ -37,7 +40,16 @@
           <el-input v-model="form.name" placeholder="请输入名称" />
         </el-form-item>
         <el-form-item label="编码" prop="code">
-          <el-input v-model="form.code" placeholder="如 user:list" />
+          <el-input v-model="form.code" placeholder="如 system:user:read" />
+          <div class="form-tip">接口编码须与后端路由一致；仅新增自定义编码不会自动保护接口。</div>
+        </el-form-item>
+        <el-form-item label="类型" prop="type">
+          <el-select v-model="form.type" style="width: 100%">
+            <el-option label="接口权限" value="api" />
+            <el-option label="菜单权限" value="menu" />
+            <el-option label="按钮权限" value="button" />
+          </el-select>
+          <div class="form-tip">菜单权限只控制可见性；调用接口需要角色持有对应接口权限。</div>
         </el-form-item>
         <el-form-item label="可访问菜单" prop="menuIds">
           <el-select v-model="form.menuIds" multiple placeholder="选择该权限可访问的菜单" style="width: 100%" filterable>
@@ -72,7 +84,7 @@ const filters = reactive({ keyword: '' });
 const pagination = reactive({ page: 1, pageSize: 50, total: 0 });
 const tableData = ref([]);
 const menuOptions = ref([]);
-const form = reactive({ id: null, name: '', code: '', description: '', menuIds: [] });
+const form = reactive({ id: null, name: '', code: '', type: 'api', description: '', menuIds: [] });
 const rules = { name: [{ required: true, message: '请输入名称', trigger: 'blur' }], code: [{ required: true, message: '请输入编码', trigger: 'blur' }] };
 
 async function loadData() {
@@ -101,6 +113,7 @@ function openCreate() {
   form.id = null;
   form.name = '';
   form.code = '';
+  form.type = 'api';
   form.description = '';
   form.menuIds = [];
   dialogTitle.value = '新增权限';
@@ -111,6 +124,7 @@ function openEdit(row) {
   form.id = row.id;
   form.name = row.name;
   form.code = row.code;
+  form.type = row.type || 'api';
   form.description = row.description || '';
   form.menuIds = Array.isArray(row.menuIds) ? [...row.menuIds] : [];
   dialogTitle.value = '编辑权限';
@@ -126,6 +140,7 @@ async function handleSubmit() {
     const payload = {
       name: form.name,
       code: form.code,
+      type: form.type,
       description: form.description,
       menuIds: form.menuIds || []
     };

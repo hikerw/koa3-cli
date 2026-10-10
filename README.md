@@ -236,6 +236,42 @@ DELETE /api/user/:id
 
 ## 开发指南
 
+### 后端接口权限
+
+接口调用使用「后台用户 → 角色 → 权限」授权链。服务端逐次读取当前账号和角色权限，
+普通用户只有持有对应 `type=api` 的权限编码才能操作；数据库中的超级管理员可访问全部接口。
+缺少接口权限返回 `403`，账号已删除或未认证返回 `401`。
+
+应用启动时会补充内置接口权限记录，不会自动分配给现有角色。升级后请使用超级管理员
+进入「权限管理」检查接口权限，再在「角色管理」中明确勾选需要的操作。
+原有 `system:access`、`material:access` 等菜单权限只负责菜单显示，不授予接口操作权限。
+
+| 模块 | 权限编码前缀 | 操作后缀 |
+| --- | --- | --- |
+| 后台用户 | `system:user` | `read`、`create`、`update`、`delete` |
+| 角色 | `system:role` | `read`、`create`、`update`、`delete` |
+| 权限 | `system:permission` | `read`、`create`、`update`、`delete` |
+| 菜单 | `system:menu` | `read`、`create`、`update`、`delete` |
+| 操作日志 | `system:log` | `read` |
+| 存储配置 | `system:storage` | `read`、`update` |
+| 素材 | `material` | `read`、`create`、`update`、`delete`、`upload` |
+| 素材分组 | `material-group` | `read`、`create`、`update`、`delete` |
+| 业务用户 | `user` | `read`、`create`、`update`、`delete` |
+| 仪表盘 | `dashboard` | `read` |
+
+例如 `system:user:read` 允许查询后台用户，`system:user:delete` 允许删除后台用户。
+素材 `upload` 权限允许上传、查重、秒传以及替换文件；`update` 权限负责元数据修改和批量移动分组。
+`/api/system/menus/current` 保持登录即可访问，返回当前用户可见菜单，不允许管理其他菜单。
+
+页面中的关联查询也需要对应查看权限。例如编辑后台用户需要查询角色，编辑角色需要查询权限，
+编辑权限需要查询菜单，因此应按职责同时分配 `system:role:read`、`system:permission:read`
+或 `system:menu:read`。角色、权限、后台账号修改权限允许管理授权或重置密码，
+存储配置查看权限允许读取存储密钥，这些权限只应授予可信的管理人员。
+
+新增受保护接口时，先在 `app/lib/apiPermissions.js` 声明编码，再在路由控制器前挂载
+`requirePermission('对应编码')`。权限管理页创建一个编码不会自动给新路由增加校验。
+执行 `npm test` 可验证授权、越权、撤销授权和路由覆盖情况，测试不会连接真实数据库。
+
 ### 添加新的控制器
 
 1. 在 `app/controller/` 目录下创建控制器文件

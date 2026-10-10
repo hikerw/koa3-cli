@@ -25,11 +25,12 @@ module.exports = (jwtConfig = {}, whitelist = []) => {
         username: payload.username,
         isSuperAdmin: !!payload.isSuperAdmin
       };
-      await next();
     } catch (err) {
       ctx.status = 401;
       ctx.body = { success: false, message: '令牌无效或过期' };
+      return;
     }
+    await next();
   };
 };
 

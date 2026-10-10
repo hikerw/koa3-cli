@@ -17,6 +17,7 @@ const authMiddleware = require('./middleware/auth');
 const router = require('./router');
 const { connectMongo } = require('./model/db');
 const menuService = require('./service/menu');
+const permissionService = require('./service/permission');
 
 const rootDir = path.join(__dirname, '..');
 const INDEX_HTML_CACHE_CONTROL = 'no-store, no-cache, must-revalidate, proxy-revalidate';
@@ -117,6 +118,7 @@ async function setup(app, config, logger) {
     await menuService.ensureLogsMenu();
     await menuService.ensureStorageMenu();
     await menuService.ensureMaterialsMenu();
+    await permissionService.ensureApiPermissions();
   } catch (e) {
     logger.warn('Menu seed skipped', { message: e.message });
   }
