@@ -8,6 +8,8 @@ const setupProcessEvents = require('./app/processEvents');
 
 const config = loadConfig();
 const app = new Koa();
+// 启用代理信任（关键配置）
+app.proxy = true;
 const logger = createLogger({
   ...(config.logger || {}),
   appName: config.name || 'koa3-cli',
