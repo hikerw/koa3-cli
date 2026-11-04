@@ -19,7 +19,14 @@ function loadConfig() {
     // 忽略缺失的环境配置文件
   }
 
-  return Object.assign({}, defaultConfig, envConfig);
+  return {
+    ...defaultConfig,
+    ...envConfig,
+    logger: {
+      ...defaultConfig.logger,
+      ...envConfig.logger
+    }
+  };
 }
 
 module.exports = { loadConfig };

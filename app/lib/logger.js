@@ -102,7 +102,7 @@ class Logger {
       ...data
     };
 
-    if (this.enableConsole && this.shouldLog('info')) {
+    if (this.enableConsole) {
       console.log(`[${line.timestamp}] [${this.appName}] [ACCESS] ${line.method} ${line.url} ${line.status} ${line.duration}ms ${line.requestId}`);
     }
 
