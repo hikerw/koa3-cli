@@ -1,7 +1,9 @@
 import axios from 'axios';
 
 const instance = axios.create({
-  baseURL: import.meta.env.VITE_API_BASE || '/api',
+  // 默认使用相对路径，使接口请求自动带上前端所在子目录前缀（如 /admin/api）。
+  // 若后端接口部署在其他路径，可通过 VITE_API_BASE 覆盖，例如 VITE_API_BASE=/api。
+  baseURL: import.meta.env.VITE_API_BASE || './api',
   timeout: 10000
 });
 

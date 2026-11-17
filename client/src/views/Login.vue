@@ -74,11 +74,13 @@
 import { ref, computed } from 'vue';
 import { User, Lock, Sunny, Moon } from '@element-plus/icons-vue';
 import { ElMessage } from 'element-plus';
+import { useRouter } from 'vue-router';
 import { login } from '../api/auth';
 import { useTheme } from '../composables/useTheme';
 import { appTitle } from '../config/app';
 
 const { isDark, toggleTheme } = useTheme();
+const router = useRouter();
 
 // 登录页 logo：按空格拆成主标题 + 副标（无空格则只显示主标题）
 const loginLogoMain = computed(() => {
@@ -111,7 +113,8 @@ async function handleLogin() {
     localStorage.setItem('token', data.token);
     localStorage.setItem('admin', JSON.stringify(data.user));
     ElMessage.success('登录成功');
-    window.location.href = '/';
+    // 使用路由跳转而非整页重载，避免相对路径部署时被强制带回域名根目录。
+    router.push('/');
   } catch (err) {
     ElMessage.error(err.message || '登录失败');
   } finally {

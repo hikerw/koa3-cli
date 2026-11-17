@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router';
+import { createRouter, createWebHashHistory } from 'vue-router';
 
 // 页面组件使用路由级懒加载，避免后台管理端所有页面在首屏一次性打进主包。
 const Login = () => import('./views/Login.vue');
@@ -31,7 +31,10 @@ const routes = [
 ];
 
 const router = createRouter({
-  history: createWebHistory(),
+  // 使用 Hash 模式：路由变化只影响 URL 的 # 后面部分，浏览器不会向服务器请求子路由地址。
+  // 这样即使后管部署在任意子目录，刷新页面也不会因为服务端缺少 SPA fallback 而返回 404。
+  // 不传 base，让 Vue Router 自动用当前页面地址作为基准，天然兼容相对路径部署。
+  history: createWebHashHistory(),
   routes
 });
 
