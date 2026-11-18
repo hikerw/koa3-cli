@@ -1,6 +1,7 @@
 const roleService = require('../service/role');
 const logService = require('../service/log');
 const { Joi, objectIdArray, validateBody, requireParamObjectId } = require('../lib/validate');
+const { ok, reject } = require('../lib/response');
 
 class RoleController {
   async list(ctx) {
@@ -8,12 +9,12 @@ class RoleController {
     const pageSize = Math.min(100, Math.max(1, parseInt(ctx.query.pageSize, 10) || 100));
     const keyword = ctx.query.keyword || '';
     const result = await roleService.getList({ page, pageSize, keyword });
-    ctx.body = result;
+    ok(ctx, result);
   }
 
   async all(ctx) {
     const list = await roleService.getAll();
-    ctx.body = list;
+    ok(ctx, list);
   }
 
   async detail(ctx) {
@@ -21,11 +22,10 @@ class RoleController {
     if (!id) return;
     const role = await roleService.getById(id);
     if (!role) {
-      ctx.status = 404;
-      ctx.body = { message: 'Not found' };
+      reject(ctx, 404, 'Not found');
       return;
     }
-    ctx.body = role;
+    ok(ctx, role);
   }
 
   async create(ctx) {
@@ -61,8 +61,7 @@ class RoleController {
       targetId: role?.id,
       detail: `新增角色: ${role?.name || ''}`
     });
-    ctx.status = 201;
-    ctx.body = role;
+    ok(ctx, role);
   }
 
   async update(ctx) {
@@ -93,8 +92,7 @@ class RoleController {
 
     const role = await roleService.update(id, value);
     if (!role) {
-      ctx.status = 404;
-      ctx.body = { message: 'Not found' };
+      reject(ctx, 404, 'Not found');
       return;
     }
     await logService.create(ctx, {
@@ -105,17 +103,16 @@ class RoleController {
       targetId: role.id,
       detail: `更新角色: ${role.name || ''}`
     });
-    ctx.body = role;
+    ok(ctx, role);
   }
 
   async delete(ctx) {
     const id = requireParamObjectId(ctx, 'id', '角色 id 不能为空或不合法');
     if (!id) return;
     const before = await roleService.getById(id);
-    const ok = await roleService.delete(id);
-    if (!ok) {
-      ctx.status = 404;
-      ctx.body = { message: 'Not found' };
+    const deleted = await roleService.delete(id);
+    if (!deleted) {
+      reject(ctx, 404, 'Not found');
       return;
     }
     await logService.create(ctx, {
@@ -126,7 +123,7 @@ class RoleController {
       targetId: id,
       detail: before ? `删除角色: ${before.name}` : `删除角色 id: ${id}`
     });
-    ctx.body = { message: 'Deleted' };
+    ok(ctx, { message: 'Deleted' });
   }
 }
 

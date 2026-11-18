@@ -3,8 +3,8 @@
  */
 module.exports = async function notFound(ctx) {
   if (ctx.status === 404) {
-    // Koa 的默认 404 属于「隐式状态码」，直接给 ctx.body 赋值会被 Koa 重置为 200。
-    // 因此这里必须显式再设置一次，确保未匹配到路由/资源时真正返回 404。
+    // 必须显式写回状态码：Koa 在设置 body 时会隐式把「未显式声明」的默认 404 改成 200，
+    // 否则「没有匹配到任何资源」的响应会变成 200 + Not Found 正文，前端无法据此区分成功与失败。
     ctx.status = 404;
     ctx.body = {
       success: false,

@@ -1,5 +1,6 @@
 const AdminService = require('../service/admin');
 const logService = require('../service/log');
+const { ok } = require('../lib/response');
 const config = require('../../config/config.default');
 let envConfig = {};
 try {
@@ -25,7 +26,7 @@ class AdminController {
         operatorName: data.user?.username ?? username,
         detail: '登录成功'
       });
-      ctx.body = data;
+      ok(ctx, data);
     } catch (err) {
       await logService.create(ctx, {
         action: 'login_fail',

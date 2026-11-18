@@ -1,16 +1,16 @@
 const materialGroupService = require('../service/materialGroup');
 const logService = require('../service/log');
+const { ok, reject } = require('../lib/response');
 
 class MaterialGroupController {
   async list(ctx) {
-    ctx.body = await materialGroupService.list();
+    ok(ctx, await materialGroupService.list());
   }
 
   async create(ctx) {
     const body = ctx.request.body || {};
     if (!body.name || !String(body.name).trim()) {
-      ctx.status = 400;
-      ctx.body = { message: '分组名称不能为空' };
+      reject(ctx, 400, '分组名称不能为空');
       return;
     }
     const row = await materialGroupService.create(body);
@@ -22,15 +22,13 @@ class MaterialGroupController {
       targetId: row?.id,
       detail: `新增素材分组: ${row?.name || ''}`
     });
-    ctx.status = 201;
-    ctx.body = row;
+    ok(ctx, row);
   }
 
   async update(ctx) {
     const row = await materialGroupService.update(ctx.params.id, ctx.request.body || {});
     if (!row) {
-      ctx.status = 404;
-      ctx.body = { message: 'Not found' };
+      reject(ctx, 404, 'Not found');
       return;
     }
     await logService.create(ctx, {
@@ -41,16 +39,15 @@ class MaterialGroupController {
       targetId: row.id,
       detail: `更新素材分组: ${row.name || ''}`
     });
-    ctx.body = row;
+    ok(ctx, row);
   }
 
   async delete(ctx) {
     const id = ctx.params.id;
     const before = (await materialGroupService.list()).find((g) => g.id === id);
-    const ok = await materialGroupService.delete(id);
-    if (!ok) {
-      ctx.status = 404;
-      ctx.body = { message: 'Not found' };
+    const deleted = await materialGroupService.delete(id);
+    if (!deleted) {
+      reject(ctx, 404, 'Not found');
       return;
     }
     await logService.create(ctx, {
@@ -61,7 +58,7 @@ class MaterialGroupController {
       targetId: id,
       detail: before ? `删除素材分组: ${before.name}` : `删除素材分组 id: ${id}`
     });
-    ctx.body = { message: '删除成功' };
+    ok(ctx, { message: '删除成功' });
   }
 }
 

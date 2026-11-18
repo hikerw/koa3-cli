@@ -3,6 +3,7 @@
  */
 const userService = require('../service/user');
 const { Joi, validateValue } = require('../lib/validator');
+const { ok, reject } = require('../lib/response');
 
 const idParamSchema = Joi.object({
   id: Joi.string().required().messages({ 'any.required': '用户 id 不能为空' })
@@ -35,7 +36,7 @@ class UserController {
       const page = Math.max(1, parseInt(ctx.query.page, 10) || 1);
       const pageSize = Math.min(100, Math.max(1, parseInt(ctx.query.pageSize, 10) || 10));
       const result = await userService.getUserList({ page, pageSize });
-      ctx.body = result;
+      ok(ctx, result);
     } catch (error) {
       ctx.throw(500, error.message);
     }
@@ -50,11 +51,10 @@ class UserController {
     try {
       const user = await userService.getUserById(id);
       if (!user) {
-        ctx.status = 404;
-        ctx.body = { message: 'User not found' };
+        reject(ctx, 404, 'User not found');
         return;
       }
-      ctx.body = user;
+      ok(ctx, user);
     } catch (error) {
       ctx.throw(500, error.message);
     }
@@ -68,8 +68,7 @@ class UserController {
 
     try {
       const user = await userService.createUser(userData);
-      ctx.status = 201;
-      ctx.body = user;
+      ok(ctx, user);
     } catch (error) {
       ctx.throw(error.status || 500, error.message);
     }
@@ -85,11 +84,10 @@ class UserController {
     try {
       const user = await userService.updateUser(id, userData);
       if (!user) {
-        ctx.status = 404;
-        ctx.body = { message: 'User not found' };
+        reject(ctx, 404, 'User not found');
         return;
       }
-      ctx.body = user;
+      ok(ctx, user);
     } catch (error) {
       ctx.throw(error.status || 500, error.message);
     }
@@ -104,12 +102,10 @@ class UserController {
     try {
       const result = await userService.deleteUser(id);
       if (!result) {
-        ctx.status = 404;
-        ctx.body = { message: 'User not found' };
+        reject(ctx, 404, 'User not found');
         return;
       }
-      ctx.status = 200;
-      ctx.body = { message: 'Deleted' };
+      ok(ctx, { message: 'Deleted' });
     } catch (error) {
       ctx.throw(error.status || 500, error.message);
     }

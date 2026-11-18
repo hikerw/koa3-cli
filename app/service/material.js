@@ -5,6 +5,7 @@ const Material = require('../model/material');
 const { md5FileHex, normalizeMd5 } = require('../lib/fileMd5');
 const storageService = require('./storage');
 const { buildMaterialUsageMap, normalizeMaterialUrl } = require('./materialUsage');
+const { throwError } = require('../lib/response');
 
 function resolveGroupIdForCreate(raw) {
   if (raw == null || raw === '') return null;
@@ -31,9 +32,13 @@ class MaterialService {
    */
   async attachUsage(items = []) {
     const rows = items.map((item) => (typeof item.toJSON === 'function' ? item.toJSON() : item));
-    const usageMap = await buildMaterialUsageMap(rows.map((row) => row.url));
+    const urls = rows.map((row) => normalizeMaterialUrl(row.url));
+    const materialIds = rows.map((row) => String(row.id || row._id || '').trim());
+    const usageMap = await buildMaterialUsageMap(urls, materialIds, urls);
+
     return rows.map((row) => {
-      const refs = usageMap.get(normalizeMaterialUrl(row.url)) || [];
+      const materialId = String(row.id || row._id || '').trim();
+      const refs = usageMap.get(materialId) || [];
       return {
         ...row,
         inUse: refs.length > 0,
@@ -142,17 +147,9 @@ class MaterialService {
   async createFromInstant({ fileHash, size, name, description, tags, groupId }) {
     const h = normalizeMd5(fileHash);
     const sz = Number(size);
-    if (!h || Number.isNaN(sz) || sz < 0) {
-      const err = new Error('无效的 md5 或文件大小');
-      err.status = 400;
-      throw err;
-    }
+    if (!h || Number.isNaN(sz) || sz < 0) throwError(400, '无效的 md5 或文件大小');
     const src = await this.findFirstByContent(h, sz);
-    if (!src || !src.url) {
-      const err = new Error('未找到相同文件，请完整上传');
-      err.status = 404;
-      throw err;
-    }
+    if (!src || !src.url) throwError(404, '未找到相同文件，请完整上传');
     const base =
       (name || '').trim() ||
       path.parse(String(src.url || '').split('/').pop() || 'file').name ||
@@ -175,11 +172,7 @@ class MaterialService {
   async replaceFromInstant(id, { fileHash, size, name, description, tags, groupId }, uploadCfg, rootDir) {
     const h = normalizeMd5(fileHash);
     const sz = Number(size);
-    if (!h || Number.isNaN(sz) || sz < 0) {
-      const err = new Error('无效的 md5 或文件大小');
-      err.status = 400;
-      throw err;
-    }
+    if (!h || Number.isNaN(sz) || sz < 0) throwError(400, '无效的 md5 或文件大小');
     const src = await this.findFirstByContent(h, sz);
     if (!src || !src.url) return null;
     const doc = await Material.findById(id);
@@ -361,11 +354,7 @@ class MaterialService {
     if (!validIds.length) return 0;
     let gid = null;
     if (groupIdRaw != null && String(groupIdRaw).trim() !== '') {
-      if (!mongoose.isValidObjectId(String(groupIdRaw))) {
-        const err = new Error('无效的分组 id');
-        err.status = 400;
-        throw err;
-      }
+      if (!mongoose.isValidObjectId(String(groupIdRaw))) throwError(400, '无效的分组 id');
       gid = new mongoose.Types.ObjectId(String(groupIdRaw));
     }
     const res = await Material.updateMany({ _id: { $in: validIds } }, { $set: { groupId: gid } });

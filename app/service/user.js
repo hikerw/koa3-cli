@@ -3,6 +3,7 @@
  * 处理业务逻辑，与数据模型交互
  */
 const User = require('../model/user');
+const { throwError } = require('../lib/response');
 
 class UserService {
   /**
@@ -41,11 +42,7 @@ class UserService {
       const user = await User.create(userData);
       return user.toJSON();
     } catch (err) {
-      if (err && err.code === 11000) {
-        const error = new Error('email 已存在');
-        error.status = 400;
-        throw error;
-      }
+      if (err && err.code === 11000) throwError(400, 'email 已存在');
       throw err;
     }
   }
@@ -61,11 +58,7 @@ class UserService {
       });
       return user ? user.toJSON() : null;
     } catch (err) {
-      if (err && err.code === 11000) {
-        const error = new Error('email 已存在');
-        error.status = 400;
-        throw error;
-      }
+      if (err && err.code === 11000) throwError(400, 'email 已存在');
       throw err;
     }
   }

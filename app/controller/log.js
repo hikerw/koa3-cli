@@ -1,4 +1,5 @@
 const logService = require('../service/log');
+const { ok } = require('../lib/response');
 
 class LogController {
   async list(ctx) {
@@ -18,7 +19,7 @@ class LogController {
       startDate,
       endDate
     });
-    ctx.body = result;
+    ok(ctx, result);
   }
 }
 

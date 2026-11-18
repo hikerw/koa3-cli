@@ -5,6 +5,7 @@ const { loadConfig } = require('../../config/loader');
 const materialService = require('../service/material');
 const { ensureDir } = require('../lib/materialUpload');
 const logService = require('../service/log');
+const { ok, reject } = require('../lib/response');
 
 const rootDir = path.join(__dirname, '../..');
 
@@ -39,7 +40,7 @@ class MaterialController {
     const md = body.md5 || body.fileHash;
     const size = body.size;
     const result = await materialService.checkContentHit(md, size);
-    ctx.body = result;
+    ok(ctx, result);
   }
 
   /**
@@ -71,8 +72,7 @@ class MaterialController {
           rootDir
         );
         if (!row) {
-          ctx.status = 404;
-          ctx.body = { message: 'Not found' };
+          reject(ctx, 404, 'Not found');
           return;
         }
         await logService.create(ctx, {
@@ -83,7 +83,7 @@ class MaterialController {
           targetId: row.id,
           detail: `秒传替换文件: ${row.name || ''}`
         });
-        ctx.body = row;
+        ok(ctx, row);
         return;
       }
 
@@ -103,12 +103,10 @@ class MaterialController {
         targetId: row?.id,
         detail: `秒传新增素材: ${row?.name || ''}`
       });
-      ctx.status = 201;
-      ctx.body = row;
+      ok(ctx, row);
     } catch (e) {
       if (e.status) {
-        ctx.status = e.status;
-        ctx.body = { message: e.message, usageRefs: e.usageRefs || [] };
+        reject(ctx, e.status, e.message, { usageRefs: e.usageRefs || [] });
         return;
       }
       ctx.throw(500, e.message);
@@ -132,7 +130,7 @@ class MaterialController {
       typeTab,
       group
     });
-    ctx.body = result;
+    ok(ctx, result);
   }
 
   async bulkDelete(ctx) {
@@ -147,7 +145,7 @@ class MaterialController {
       operatorName: ctx.state.user?.username,
       detail: `批量删除素材 ${result.deleted} 条，拦截使用中素材 ${result.blocked.length} 条`
     });
-    ctx.body = result;
+    ok(ctx, result);
   }
 
   async bulkGroup(ctx) {
@@ -162,21 +160,19 @@ class MaterialController {
         operatorName: ctx.state.user?.username,
         detail: `批量移动素材到分组 ${n} 条`
       });
-      ctx.body = { updated: n };
+      ok(ctx, { updated: n });
     } catch (e) {
-      ctx.status = e.status || 400;
-      ctx.body = { message: e.message };
+      reject(ctx, e.status || 400, e.message);
     }
   }
 
   async detail(ctx) {
     const row = await materialService.getById(ctx.params.id);
     if (!row) {
-      ctx.status = 404;
-      ctx.body = { message: 'Not found' };
+      reject(ctx, 404, 'Not found');
       return;
     }
-    ctx.body = row;
+    ok(ctx, row);
   }
 
   /**
@@ -203,16 +199,14 @@ class MaterialController {
       const msg = String(e.message || '');
       const message =
         e.httpCode === 413 || /maxFileSize|greater than|exceeded/i.test(msg) ? '文件超出大小限制' : msg || '上传解析失败';
-      ctx.status = 400;
-      ctx.body = { message };
+      reject(ctx, 400, message);
       return;
     }
 
     const fileArr = files.file;
     const file = Array.isArray(fileArr) ? fileArr[0] : fileArr;
     if (!file || !file.filepath) {
-      ctx.status = 400;
-      ctx.body = { message: '请选择要上传的文件' };
+      reject(ctx, 400, '请选择要上传的文件');
       return;
     }
 
@@ -241,8 +235,7 @@ class MaterialController {
         );
         if (!row) {
           await fs.unlink(fileMeta.tempPath).catch(() => {});
-          ctx.status = 404;
-          ctx.body = { message: 'Not found' };
+          reject(ctx, 404, 'Not found');
           return;
         }
         await logService.create(ctx, {
@@ -253,7 +246,7 @@ class MaterialController {
           targetId: row.id,
           detail: `替换素材文件: ${row.name || ''}`
         });
-        ctx.body = row;
+        ok(ctx, row);
         return;
       }
 
@@ -270,12 +263,10 @@ class MaterialController {
         targetId: row?.id,
         detail: `新增素材: ${row?.name || ''}`
       });
-      ctx.status = 201;
-      ctx.body = row;
+      ok(ctx, row);
     } catch (e) {
       if (e.status) {
-        ctx.status = e.status;
-        ctx.body = { message: e.message, usageRefs: e.usageRefs || [] };
+        reject(ctx, e.status, e.message, { usageRefs: e.usageRefs || [] });
         return;
       }
       ctx.throw(500, e.message);
@@ -286,13 +277,11 @@ class MaterialController {
   async create(ctx) {
     const body = ctx.request.body || {};
     if (!body.name || !String(body.name).trim()) {
-      ctx.status = 400;
-      ctx.body = { message: '素材名称不能为空' };
+      reject(ctx, 400, '素材名称不能为空');
       return;
     }
     if (!body.url || !String(body.url).trim()) {
-      ctx.status = 400;
-      ctx.body = { message: '请上传文件或使用资源地址创建' };
+      reject(ctx, 400, '请上传文件或使用资源地址创建');
       return;
     }
     const row = await materialService.create(body);
@@ -304,15 +293,13 @@ class MaterialController {
       targetId: row?.id,
       detail: `新增素材: ${row?.name || ''}`
     });
-    ctx.status = 201;
-    ctx.body = row;
+    ok(ctx, row);
   }
 
   async update(ctx) {
     const row = await materialService.update(ctx.params.id, ctx.request.body || {});
     if (!row) {
-      ctx.status = 404;
-      ctx.body = { message: 'Not found' };
+      reject(ctx, 404, 'Not found');
       return;
     }
     await logService.create(ctx, {
@@ -323,7 +310,7 @@ class MaterialController {
       targetId: row.id,
       detail: `更新素材: ${row.name || ''}`
     });
-    ctx.body = row;
+    ok(ctx, row);
   }
 
   async delete(ctx) {
@@ -331,10 +318,9 @@ class MaterialController {
     const id = ctx.params.id;
     const before = await materialService.getById(id);
     try {
-      const ok = await materialService.delete(id, uploadCfg, rootDir);
-      if (!ok) {
-        ctx.status = 404;
-        ctx.body = { message: 'Not found' };
+      const deleted = await materialService.delete(id, uploadCfg, rootDir);
+      if (!deleted) {
+        reject(ctx, 404, 'Not found');
         return;
       }
       await logService.create(ctx, {
@@ -345,11 +331,10 @@ class MaterialController {
         targetId: id,
         detail: before ? `删除素材: ${before.name}` : `删除素材 id: ${id}`
       });
-      ctx.body = { message: '删除成功' };
+      ok(ctx, { message: '删除成功' });
     } catch (e) {
       if (e.status) {
-        ctx.status = e.status;
-        ctx.body = { message: e.message, usageRefs: e.usageRefs || [] };
+        reject(ctx, e.status, e.message, { usageRefs: e.usageRefs || [] });
         return;
       }
       ctx.throw(500, e.message);

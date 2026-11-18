@@ -1,5 +1,6 @@
 const Joi = require('joi');
 const { mongoose } = require('../model/db');
+const { reject } = require('./response');
 
 function objectIdAllowEmpty(value, helpers) {
   if (value == null) return null;
@@ -29,8 +30,7 @@ function validateBody(ctx, schema, opts = {}) {
     ...opts
   });
   if (!error) return value;
-  ctx.status = 400;
-  ctx.body = { message: error.details?.[0]?.message || '参数校验失败' };
+  reject(ctx, 400, error.details?.[0]?.message || '参数校验失败');
   return null;
 }
 
@@ -38,8 +38,7 @@ function requireParamObjectId(ctx, key = 'id', message = 'id 不能为空或不�
   const raw = ctx?.params?.[key];
   const s = raw != null ? String(raw).trim() : '';
   if (!s || !mongoose.isValidObjectId(s)) {
-    ctx.status = 400;
-    ctx.body = { message };
+    reject(ctx, 400, message);
     return null;
   }
   return s;

@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const Admin = require('../model/admin');
+const { throwError } = require('../lib/response');
 
 async function hashPassword(raw) {
   const salt = await bcrypt.genSalt(10);
@@ -33,11 +34,7 @@ class SystemUserService {
   async create({ username, password, roleIds = [] }) {
     const usernameNorm = username.trim().toLowerCase();
     const exist = await Admin.findOne({ username: usernameNorm });
-    if (exist) {
-      const err = new Error('用户名已存在');
-      err.status = 400;
-      throw err;
-    }
+    if (exist) throwError(400, '用户名已存在');
     const hashed = await hashPassword(password);
     const doc = await Admin.create({ username: usernameNorm, password: hashed, roleIds: roleIds.length ? roleIds : [] });
     return doc.toJSON();

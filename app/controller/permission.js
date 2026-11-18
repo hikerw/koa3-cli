@@ -1,6 +1,7 @@
 const permissionService = require('../service/permission');
 const logService = require('../service/log');
 const { Joi, objectIdAllowEmpty, objectIdArray, validateBody, requireParamObjectId } = require('../lib/validate');
+const { ok, reject } = require('../lib/response');
 
 class PermissionController {
   async list(ctx) {
@@ -9,12 +10,12 @@ class PermissionController {
     const keyword = ctx.query.keyword || '';
     const tree = ctx.query.tree === 'true' || ctx.query.tree === '1';
     const result = await permissionService.getList({ page, pageSize, keyword, tree });
-    ctx.body = result;
+    ok(ctx, result);
   }
 
   async tree(ctx) {
     const list = await permissionService.getTree();
-    ctx.body = list;
+    ok(ctx, list);
   }
 
   async detail(ctx) {
@@ -22,11 +23,10 @@ class PermissionController {
     if (!id) return;
     const perm = await permissionService.getById(id);
     if (!perm) {
-      ctx.status = 404;
-      ctx.body = { message: 'Not found' };
+      reject(ctx, 404, 'Not found');
       return;
     }
-    ctx.body = perm;
+    ok(ctx, perm);
   }
 
   async create(ctx) {
@@ -66,8 +66,7 @@ class PermissionController {
       targetId: perm?.id,
       detail: `新增权限: ${perm?.name || ''}`
     });
-    ctx.status = 201;
-    ctx.body = perm;
+    ok(ctx, perm);
   }
 
   async update(ctx) {
@@ -102,8 +101,7 @@ class PermissionController {
 
     const perm = await permissionService.update(id, value);
     if (!perm) {
-      ctx.status = 404;
-      ctx.body = { message: 'Not found' };
+      reject(ctx, 404, 'Not found');
       return;
     }
     await logService.create(ctx, {
@@ -114,17 +112,16 @@ class PermissionController {
       targetId: perm.id,
       detail: `更新权限: ${perm.name || ''}`
     });
-    ctx.body = perm;
+    ok(ctx, perm);
   }
 
   async delete(ctx) {
     const id = requireParamObjectId(ctx, 'id', '权限 id 不能为空或不合法');
     if (!id) return;
     const before = await permissionService.getById(id);
-    const ok = await permissionService.delete(id);
-    if (!ok) {
-      ctx.status = 404;
-      ctx.body = { message: 'Not found' };
+    const deleted = await permissionService.delete(id);
+    if (!deleted) {
+      reject(ctx, 404, 'Not found');
       return;
     }
     await logService.create(ctx, {
@@ -135,7 +132,7 @@ class PermissionController {
       targetId: id,
       detail: before ? `删除权限: ${before.name}` : `删除权限 id: ${id}`
     });
-    ctx.body = { message: 'Deleted' };
+    ok(ctx, { message: 'Deleted' });
   }
 }
 

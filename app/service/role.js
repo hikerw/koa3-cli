@@ -1,4 +1,5 @@
 const Role = require('../model/role');
+const { throwError } = require('../lib/response');
 
 class RoleService {
   async getList({ page = 1, pageSize = 100, keyword = '' } = {}) {
@@ -32,11 +33,7 @@ class RoleService {
 
   async create({ name, code, permissionIds = [], description = '' }) {
     const exist = await Role.findOne({ code: (code || '').trim().toUpperCase() });
-    if (exist) {
-      const err = new Error('角色编码已存在');
-      err.status = 400;
-      throw err;
-    }
+    if (exist) throwError(400, '角色编码已存在');
     const doc = await Role.create({
       name: (name || '').trim(),
       code: (code || '').trim().toUpperCase(),

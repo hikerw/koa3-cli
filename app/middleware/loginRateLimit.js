@@ -4,6 +4,7 @@
 const WINDOW_MS = 15 * 60 * 1000; // 15 分钟
 const MAX_ATTEMPTS = 10;
 const store = new Map();
+const { reject } = require('../lib/response');
 
 function getClientIp(ctx) {
   return ctx.headers['x-forwarded-for']?.split(',')[0]?.trim() || ctx.ip || ctx.request.ip || 'unknown';
@@ -33,8 +34,7 @@ module.exports = () => async (ctx, next) => {
   }
   record.count += 1;
   if (record.count > MAX_ATTEMPTS) {
-    ctx.status = 429;
-    ctx.body = { success: false, message: '登录尝试过于频繁，请稍后再试' };
+    reject(ctx, 429, '登录尝试过于频繁，请稍后再试');
     return;
   }
   await next();

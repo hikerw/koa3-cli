@@ -1,6 +1,7 @@
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const Admin = require('../model/admin');
+const { throwError } = require('../lib/response');
 
 async function ensureDefaultAdmin({ username, password }) {
   if (!username || !password) return;
@@ -24,17 +25,9 @@ class AdminService {
 
   async login({ username, password }) {
     const user = await Admin.findOne({ username: username.toLowerCase().trim() });
-    if (!user) {
-      const err = new Error('账号或密码错误');
-      err.status = 401;
-      throw err;
-    }
+    if (!user) throwError(401, '账号或密码错误');
     const ok = await bcrypt.compare(password, user.password);
-    if (!ok) {
-      const err = new Error('账号或密码错误');
-      err.status = 401;
-      throw err;
-    }
+    if (!ok) throwError(401, '账号或密码错误');
     const token = jwt.sign(
       { id: user.id, username: user.username, isSuperAdmin: !!user.isSuperAdmin },
       this.jwtConfig.secret,

@@ -1,4 +1,5 @@
 const SystemSetting = require('../model/systemSetting');
+const { throwError } = require('../lib/response');
 
 const STORAGE_SETTING_KEY = 'storage';
 
@@ -50,11 +51,7 @@ class SystemSettingService {
     const next = mergeStorageSetting(payload);
     if (next.driver === 'qiniu') {
       const q = next.qiniu;
-      if (!q.accessKey || !q.secretKey || !q.bucket || !q.domain) {
-        const err = new Error('启用七牛云时，请完整填写 AccessKey、SecretKey、空间名称和访问域名');
-        err.status = 400;
-        throw err;
-      }
+      if (!q.accessKey || !q.secretKey || !q.bucket || !q.domain) throwError(400, '启用七牛云时，请完整填写 AccessKey、SecretKey、空间名称和访问域名');
     }
     const doc = await SystemSetting.findOneAndUpdate(
       { key: STORAGE_SETTING_KEY },

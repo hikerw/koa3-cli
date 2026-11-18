@@ -1,6 +1,7 @@
 const systemUserService = require('../service/systemUser');
 const logService = require('../service/log');
 const { Joi, objectIdArray, validateBody, requireParamObjectId } = require('../lib/validate');
+const { ok, reject } = require('../lib/response');
 class SystemUserController {
 
   async list(ctx) {
@@ -8,7 +9,7 @@ class SystemUserController {
     const pageSize = Math.min(100, Math.max(1, parseInt(ctx.query.pageSize, 10) || 10));
     const keyword = ctx.query.keyword || '';
     const result = await systemUserService.getList({ page, pageSize, keyword });
-    ctx.body = result;
+    ok(ctx, result);
   }
 
   async detail(ctx) {
@@ -16,11 +17,10 @@ class SystemUserController {
     if (!id) return;
     const user = await systemUserService.getById(id);
     if (!user) {
-      ctx.status = 404;
-      ctx.body = { message: 'Not found' };
+      reject(ctx, 404, 'Not found');
       return;
     }
-    ctx.body = user;
+    ok(ctx, user);
   }
 
   async create(ctx) {
@@ -55,8 +55,7 @@ class SystemUserController {
       targetId: user?.id,
       detail: `新增用户: ${value.username}`
     });
-    ctx.status = 201;
-    ctx.body = user;
+    ok(ctx, user);
   }
 
   async update(ctx) {
@@ -85,8 +84,7 @@ class SystemUserController {
 
     const user = await systemUserService.update(id, value);
     if (!user) {
-      ctx.status = 404;
-      ctx.body = { message: 'Not found' };
+      reject(ctx, 404, 'Not found');
       return;
     }
     await logService.create(ctx, {
@@ -97,17 +95,16 @@ class SystemUserController {
       targetId: user.id,
       detail: `更新用户: ${user.username}`
     });
-    ctx.body = user;
+    ok(ctx, user);
   }
 
   async delete(ctx) {
     const id = requireParamObjectId(ctx, 'id', '用户 id 不能为空或不合法');
     if (!id) return;
     const before = await systemUserService.getById(id);
-    const ok = await systemUserService.delete(id);
-    if (!ok) {
-      ctx.status = 404;
-      ctx.body = { message: 'Not found' };
+    const deleted = await systemUserService.delete(id);
+    if (!deleted) {
+      reject(ctx, 404, 'Not found');
       return;
     }
     await logService.create(ctx, {
@@ -118,7 +115,7 @@ class SystemUserController {
       targetId: id,
       detail: before ? `删除用户: ${before.username}` : `删除用户 id: ${id}`
     });
-    ctx.body = { message: 'Deleted' };
+    ok(ctx, { message: 'Deleted' });
   }
 }
 

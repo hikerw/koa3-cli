@@ -1,4 +1,5 @@
 const dashboardService = require('../service/dashboard');
+const { ok } = require('../lib/response');
 
 class DashboardController {
   /**
@@ -8,7 +9,7 @@ class DashboardController {
    */
   async stats(ctx) {
     try {
-      ctx.body = await dashboardService.getDashboardStats();
+      ok(ctx, await dashboardService.getDashboardStats());
     } catch (err) {
       ctx.throw(500, err.message);
     }
